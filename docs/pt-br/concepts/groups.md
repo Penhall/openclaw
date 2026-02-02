@@ -8,23 +8,23 @@ Grupos
 
 OpenClaw trata bate-papos de grupo de forma consistente em superfícies: WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Microsoft Teams.
 
-# # Iniciante introdução (2 minutos)
+## Iniciante introdução (2 minutos)
 
 OpenClaw “vive” em suas próprias contas de mensagens. Não há nenhum usuário de bot WhatsApp separado.
 Se **você** está em um grupo, OpenClaw pode ver esse grupo e responder lá.
 
 Comportamento padrão:
 
-- Os grupos são restritos (<<<CODE0>>>).
+- Os grupos são restritos `groupPolicy: "allowlist"`.
 - Respostas exigem uma menção, a menos que você desactiva explicitamente a menção gating.
 
 Tradução: remetentes autorizados podem ativar OpenClaw mencionando-o.
 
 > TL;DR
 >
-> - **O acesso ao DM** é controlado por <<CODE0>>.
-> - **O acesso do grupo** é controlado por <<CODE1>> + allowlists (<<CODE2>>, <<CODE3>>).
-> - ** O desencadeamento da resposta** é controlado pela menção gating (<<<CODE4>>, <<CODE5>>).
+> - **O acesso DM** é controlado pelo`*.allowFrom`.
+> - **O acesso do grupo** é controlado por`*.groupPolicy`+ allowlists `*.groups`,`*.groupAllowFrom`.
+> - ** O desencadeamento da resposta** é controlado pela menção gating `requireMention`,`/activation`.
 
 Fluxo rápido (o que acontece com uma mensagem de grupo):
 
@@ -35,20 +35,20 @@ requireMention? yes -> mentioned? no -> store for context only
 otherwise -> reply
 ```
 
-[Fluxo da mensagem do grupo] (<<<LINK0>>>)
+! [Fluxo da mensagem do grupo] /images/groups-flow.svg
 
 Se quiseres...
 Objetivo O que definir
 ----------------------
-□ Permitir que todos os grupos, mas apenas resposta em @mentions <<CODE0>
-Não desactivar todas as respostas do grupo
-Apenas grupos específicos (sem <<CODE3>> chave)
-Apenas você pode disparar em grupos .. <<<CODE4>>, <<CODE5>>
+□ Permitir que todos os grupos, mas apenas resposta em @mentions
+OUTXCODE1
+OUTXCODE2 (sem chave`"*"`
+Apenas você pode acionar em grupos`groupPolicy: "allowlist"`,`groupAllowFrom: ["+1555..."]`
 
-# # Chaves de sessão
+## Chaves de sessão
 
-- Sessões em grupo usam chaves de sessão <<CODE0>> (quartos/canais usam <<CODE1>>).
-- Tópicos do fórum do Telegram adicionam <<CODE2>> ao ID do grupo para que cada tópico tenha sua própria sessão.
+- Sessões de grupo usam chaves de sessão`agent:<agentId>:<channel>:group:<id>`(quartos/canais usam`agent:<agentId>:<channel>:channel:<id>`.
+- Os tópicos do fórum do Telegram adicionam`:topic:<threadId>`ao ID do grupo para que cada tópico tenha sua própria sessão.
 - Conversas diretas usam a sessão principal (ou por mensagem, se configurada).
 - Os batimentos cardíacos são ignorados.
 
@@ -56,14 +56,14 @@ Apenas você pode disparar em grupos .. <<<CODE4>>, <<CODE5>>
 
 Sim — isto funciona bem se o seu tráfego “pessoal” for **DMs** e o seu tráfego “público” for **groups**.
 
-Por que: no modo monoagente, os DMs normalmente pousam na chave de sessão **main** (<<<CODE0>>), enquanto os grupos usam sempre as teclas de sessão **non-main** (<<CODE1>>>). Se você habilitar sandboxing com <<CODE2>>, essas sessões de grupo são executadas no Docker enquanto sua sessão principal de DM permanece no host.
+Por que: no modo monoagente, os DMs normalmente aterram na chave de sessão **main** `agent:main:main`, enquanto os grupos sempre usam **non-main** session keys `agent:main:<channel>:group:<id>`. Se você habilitar sandboxing com`mode: "non-main"`, essas sessões de grupo são executadas no Docker enquanto sua sessão principal de DM permanece no host.
 
 Isso lhe dá um agente “cérebro” (espaço de trabalho compartilhado + memória), mas duas posturas de execução:
 
 - **DMs**: ferramentas completas (host)
 - **Grupos**: sandbox + ferramentas restritas (Docker)
 
-> Se você precisar de espaços de trabalho/pessoas verdadeiramente separados (“pessoal” e “público” nunca deve misturar), use um segundo agente + vinculações. Ver [Roteamento Multi-Agente] (<<<LINK0>>>).
+> Se você precisar de espaços de trabalho/pessoas verdadeiramente separados (“pessoal” e “público” nunca deve misturar), use um segundo agente + vinculações. Ver [Roteamento Multi-Agente] /concepts/multi-agent.
 
 Exemplo (DMs no host, grupos sandboxed + ferramentas somente de mensagens):
 
@@ -90,7 +90,7 @@ Exemplo (DMs no host, grupos sandboxed + ferramentas somente de mensagens):
 }
 ```
 
-Quer “grupos só podem ver a pasta X” em vez de “sem acesso ao host”? Manter <<CODE0>> e montar apenas caminhos listados na área de areia:
+Quer “grupos só podem ver a pasta X” em vez de “sem acesso ao host”? Manter`workspaceAccess: "none"`e montar apenas caminhos listados na área de areia:
 
 ```json5
 {
@@ -114,16 +114,16 @@ Quer “grupos só podem ver a pasta X” em vez de “sem acesso ao host”? Ma
 
 Relacionados:
 
-- Chaves de configuração e predefinições: [Configuração do portal] (<<<LINK0>>)
-- Depurando por que uma ferramenta é bloqueada: [Sandbox vs Tool Policy vs Elevated](<<LINK1>>>)
-- Detalhes das montagens de ligação: [Sandboxing] (<<<LINK2>>)
+- Chaves de configuração e predefinições: [Configuração do portal] /gateway/configuration#agentsdefaultssandbox
+- Depurando por que uma ferramenta é bloqueada: [Sandbox vs Tool Policy vs Elevated] /gateway/sandbox-vs-tool-policy-vs-elevated
+- Detalhes das montagens da ligação: [Sandboxing] /gateway/sandboxing#custom-bind-mounts
 
-# # Mostrar rótulos
+## Mostrar rótulos
 
-- As etiquetas de UI utilizam <<CODE0> quando disponíveis, formatadas como <<CODE1>>>.
-- <<CODE2> está reservado para salas/canais; chats em grupo <<CODE3> (em minúsculas, espaços -> <<CODE4>>, manter <<CODE5>>).
+- As etiquetas UI usam`displayName`quando disponíveis, formatadas como`<channel>:<token>`.
+-`#room`está reservado para salas/canais; chats de grupo usam`g-<slug>`(inferior, espaços ->`-`, manter`#@+._-`.
 
-# # Política do grupo
+## Política do grupo
 
 Controle como as mensagens de grupo/quarto são tratadas por canal:
 
@@ -174,30 +174,30 @@ Controle como as mensagens de grupo/quarto são tratadas por canal:
 
 □ Política
 -----------------------------------------------------------------------------------------------
-* <<CODE0>> * Grupos de allowlists de bypass; ainda se aplica a listagem.
-<<CODE1>> Bloquear todas as mensagens de grupo inteiramente.
-<<CODE2>> Apenas permite grupos/quartos que correspondam à lista de permissões configurada. □
+*`"open"`* Groups bypass allowlists; mencionando- gating ainda se aplica.
+Bloquear todas as mensagens de grupo inteiramente.
+Apenas permitir grupos/quartos que correspondam à lista de permissões configurada. □
 
 Notas:
 
-- <<CODE0> é separado de mencione-gating (que requer @mentions).
-- WhatsApp/Telegram/Signal/iMessage/Microsoft Teams: use <<CODE1>> (fallback: explícito <<CODE2>>).
-- Discórdia: allowlist usa <<CODE3>>>>.
-- Slack: allowlist utiliza <<CODE4>>>.
-- Matrix: allowlist usa <<CODE5>> (Identificações de quarto, apelidos ou nomes). Use <<CODE6>> para restringir os remetentes; por sala <<CODE7> também são suportadas listas de permissões.
-- Os DM do grupo são controlados separadamente (<<<<CODE8>>, <<CODE9>>>).
-- Telegram allowlist pode combinar IDs de usuário (<<<CODE10>>>, <<CODE11>>, <<CODE12>>>) ou nomes de usuário (<<CODE13>> ou <<CODE14>>>>); prefixos são insensíveis a casos.
-- O padrão é <<CODE15>>>; se sua lista de allowlist do grupo estiver vazia, as mensagens do grupo são bloqueadas.
+-`groupPolicy`é separado da citação-gating (que requer @ menções).
+- WhatsApp/Telegram/Sinal/iMessage/Microsoft Teams: use`groupAllowFrom`(fallback: explícito`allowFrom`.
+- Discórdia: lista de permissão usa`channels.discord.guilds.<id>.channels`.
+- Slack: a lista de licenças utiliza`channels.slack.channels`.
+- Matrix: a lista de allowlist utiliza`channels.matrix.groups`(IDs de quarto, apelidos ou nomes). Use`channels.matrix.groupAllowFrom`para restringir os remetentes; por quarto`users`allowlists também são suportados.
+- Os DM do grupo são controlados separadamente `channels.discord.dm.*`,`channels.slack.dm.*`.
+- Telegram allowlist pode combinar IDs de usuário `groupAllowFrom`0,`groupAllowFrom`1,`groupAllowFrom`2) ou nomes de usuário `groupAllowFrom`3 ou`groupAllowFrom`4); prefixos são insensíveis a casos.
+- O padrão é`groupAllowFrom`5; se sua lista de allowlist do grupo estiver vazia, as mensagens do grupo serão bloqueadas.
 
 Modelo mental rápido (ordem de avaliação para mensagens de grupo):
 
-1. <<CODE0>> (aberto/desactivado/lista autorizada)
-2. lista de autorizações de grupo (<<<CODE1>>, <<CODE2>>, lista de autorizações específicas de canal)
-3. mencionar gating (<<<CODE3>>, <<CODE4>>)
+1.`groupPolicy`(aberto/desactivado/lista autorizada)
+2. Listas de licenças de grupo `*.groups`,`*.groupAllowFrom`, lista de autorizações específicas do canal)
+3. Mencionar o jating `requireMention`,`/activation`
 
-# # Mencionar gating (padrão)
+## Mencionar gating (padrão)
 
-As mensagens de grupo requerem uma menção, a menos que seja anulada por grupo. Os padrões vivem por subsistema em <<CODE0>>>.
+As mensagens de grupo requerem uma menção, a menos que seja anulada por grupo. As predefinições vivem por subsistema ao abrigo do`*.groups."*"`.
 
 Responder a uma mensagem bot conta como uma menção implícita (quando o canal suporta metadados de resposta). Isso se aplica ao Telegram, WhatsApp, Slack, Discord e Microsoft Teams.
 
@@ -239,26 +239,24 @@ Responder a uma mensagem bot conta como uma menção implícita (quando o canal 
 
 Notas:
 
-- <<CODE0> são regexes sensíveis ao caso.
+-`mentionPatterns`são regexes sensíveis a casos.
 - Superfícies que fornecem menções explícitas ainda passam; padrões são um recuo.
-- Substituição por agente: <<CODE1>> (útil quando múltiplos agentes compartilham um grupo).
-- Mention gating só é aplicado quando a detecção de menção é possível (menções nativas ou <<CODE2>> são configurados).
-- Os padrões de discórdia vivem em <<CODE3>> (superável por guild/canal).
-- O contexto do histórico do grupo é envolto uniformemente em todos os canais e é ** (mensagens ignoradas devido à menção gating); use <<CODE4>> para o padrão global e <<CODE5>> (ou <<CODE6>>>) para sobreposições. Definir <<CODE7>> para desativar.
+- Substituição por agente:`agents.list[].groupChat.mentionPatterns`(útil quando vários agentes compartilham um grupo).
+- Mention gating só é aplicado quando a detecção de menção é possível (menções nativas ou`mentionPatterns`são configurados).
+- Discord defaults live in`channels.discord.guilds."*"`(superável por guild/canal).
+- O contexto do histórico do grupo é envolto uniformemente em todos os canais e é ** somente para gastos** (mensagens ignoradas devido à menção gating); use`messages.groupChat.historyLimit`para o padrão global e`channels.<channel>.historyLimit`(ou`channels.<channel>.accounts.*.historyLimit` para sobreposições. Defina`0`para desabilitar.
 
-# # Restrições de ferramentas de grupo/canal (opcional)
+## Restrições de ferramentas de grupo/canal (opcional)
 
 Alguns canais configuram suporte restringindo quais ferramentas estão disponíveis **dentro de um grupo específico / sala / canal**.
 
-- <<CODE0>>: permitir/negar ferramentas para todo o grupo.
-- <<CODE1>>: substituições por sender dentro do grupo (chaves são IDs remetentes/nomes de usuário/email/números de telefone dependendo do canal). Utilizar <<CODE2>> como uma carta.
+-`tools`: permitir/negar ferramentas para todo o grupo.
+-`toolsBySender`: substitui por sender dentro do grupo (chaves são IDs remetentes/nomes de usuário/e-mails/números de telefone dependendo do canal). Use`"*"`como um wildcard.
 
 Ordem de resolução (vencimentos mais específicos):
 
-1. grupo/canal <<CODE0>> correspondência
-2. grupo/canal <<CODE1>>>
-3. padrão (<<<CODE2>>) <<CODE3>> correspondência
-4. padrão (<<<CODE4>>>) <<CODE5>>
+1. grupo/canal`toolsBySender`2. Grupo/canal`tools`3. por omissão `"*"``toolsBySender`match
+4. por omissão `"*"``tools`
 
 Exemplo (Telegrama):
 
@@ -283,11 +281,11 @@ Exemplo (Telegrama):
 Notas:
 
 - Restrições de ferramentas de grupo/canal são aplicadas além da política global/agente (deny ainda vence).
-- Alguns canais usam ninhos diferentes para salas/canais (por exemplo, Discórdia <<CODE0>>, Slack <<CODE1>>, Equipes MS <<CODE2>>>).
+- Alguns canais usam ninhos diferentes para salas/canais (por exemplo, Discord`guilds.*.channels.*`, Slack`channels.*`, MS Teams`teams.*.channels.*`.
 
-# # Listas de licenças de grupo
+## Listas de licenças de grupo
 
-Quando <<CODE0>>, <<CODE1>>, ou <<CODE2>> é configurado, as chaves atuam como uma lista de allowlists de grupo. Use <<CODE3> para permitir todos os grupos enquanto ainda define o comportamento padrão de menção.
+Quando`channels.whatsapp.groups`,`channels.telegram.groups`ou`channels.imessage.groups`é configurado, as chaves agem como uma lista de allowlist de grupo. Use`"*"`para permitir todos os grupos enquanto ainda define o comportamento padrão de menção.
 
 Intenções comuns (cópia/cola):
 
@@ -340,33 +338,32 @@ Intenções comuns (cópia/cola):
 }
 ```
 
-# # Ativação (somente proprietário)
+## Ativação (somente proprietário)
 
 Os proprietários do grupo podem alternar a ativação por grupo:
 
-- <<CODE0>>
-- <<CODE1>>
+-`/activation mention`-`/activation always`
 
-O proprietário é determinado por <<CODE0>> (ou pelo próprio robô E.164 quando desligado). Envie o comando como uma mensagem independente. Outras superfícies ignoram atualmente <<CODE1>>>>.
+O proprietário é determinado pelo`channels.whatsapp.allowFrom`(ou pelo próprio robô E.164 quando desactivado). Envie o comando como uma mensagem independente. Outras superfícies atualmente ignoram`/activation`.
 
-# # Campos de contexto
+## Campos de contexto
 
 Conjunto de cargas de entrada do grupo:
 
-- <<CODE0>>
-- <<CODE1>> (se conhecido)
-- <<CODE2>> (se conhecido)
-- <<CODE3>
-- Os tópicos do fórum de telegramas também incluem <<CODE4>> e <<CODE5>>.
+-`ChatType=group`-`GroupSubject`(se conhecido)
+-`GroupMembers`(se conhecido)
+-`WasMentioned`(resultado da medição)
+- Os temas do fórum de telegramas incluem também`MessageThreadId`e`IsForum`.
 
-O prompt do sistema do agente inclui uma introdução do grupo na primeira volta de uma nova sessão do grupo. Ele lembra o modelo para responder como um humano, evitar tabelas Markdown, e evitar digitar sequências literais <<CODE0>>.
+O prompt do sistema do agente inclui uma introdução do grupo na primeira volta de uma nova sessão do grupo. Ele lembra o modelo para responder como um humano, evitar tabelas Markdown, e evitar digitar sequências`
+`literal.
 
-# # iMensagem específica
+## iMensagem específica
 
-- Preferir <<CODE0>> quando roteamento ou allowlisting.
-- Listar chats: <<CODE1>>>.
-- Respostas de grupo sempre voltar para o mesmo <<CODE2>>.
+- Preferir`chat_id:<id>`quando rotear ou permitir listar.
+- Conversas de lista:`imsg chats --limit 20`.
+- As respostas do grupo voltam sempre para o mesmo`chat_id`.
 
-# # WhatsApp especifica
+## WhatsApp especifica
 
-Veja [Mensagens do grupo](<<<LINK0>>) para o comportamento somente do WhatsApp (injeção histórica, mencionar detalhes do manuseio).
+Ver [Mensagens do grupo]/concepts/group-messages para o comportamento WhatsApp-only (injeção histórica, mencionar detalhes de manipulação).

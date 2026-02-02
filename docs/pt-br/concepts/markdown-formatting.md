@@ -13,7 +13,7 @@ representação (IR) antes de renderizar saída específica do canal. A IR mant�
 texto fonte intacto enquanto carrega estilo / link spans de modo que o bloco e renderização pode
 Mantenha-se consistente entre os canais.
 
-# # Objetivos
+## Objetivos
 
 - ** Consistência:** uma etapa de análise, múltiplos renderizadores.
 - **Blocagem segura:** texto dividido antes de renderizar a formatação em linha nunca
@@ -21,7 +21,7 @@ rompe-se entre pedaços.
 - **Canal fit:** mapeia a mesma IR para Slack mrkdwn, Telegram HTML e Signal
 intervalos de estilo sem re-parsing Markdown.
 
-# # Pipeline
+## Pipeline
 
 1. **Parse Markdown -> IR**
 - IR é texto simples mais spans de estilo (bold/italic/strike/code/spoiler) e spans de ligação.
@@ -31,11 +31,11 @@ intervalos de estilo sem re-parsing Markdown.
 - Chunking acontece no texto de IR antes de renderizar.
 - A formatação em linha não se divide entre pedaços; os spans são cortados por pedaço.
 3. **Render por canal**
-- ** Slack:** tokens mrkdwn (bold/italic/strike/code), links como <<CODE0>>.
-- **Telegrama:** tags HTML (<<<CODE1>>, <<CODE2>>, <<CODE3>>, <<CODE4>>, <<CODE5>>, <<CODE6>>).
-- **Signal:** texto simples + <<CODE7> ranges; as ligações tornam-se <<CODE8>> quando o rótulo difere.
+- ** Slack:** mrkdwn tokens (bold/italic/strike/code), links como`<url|label>`.
+- **Telegrama:** Tags HTML `<b>`,`<i>`,`<s>`,`<code>`,`<pre><code>`,`<a href>`.
+- **Signal:** texto simples +`text-style`ranges; links tornam-se`label (url)`quando o rótulo difere.
 
-# # Exemplo de IR
+## Exemplo de IR
 
 Marcação de entrada:
 
@@ -53,21 +53,20 @@ RI (esquemático):
 }
 ```
 
-# # Onde é usado
+## Onde é usado
 
 - Adaptadores de saída Slack, Telegram e Signal da IR.
 - Outros canais (WhatsApp, iMessage, MS Teams, Discord) ainda usam texto simples ou
 suas próprias regras de formatação, com conversão de tabela Markdown aplicado antes
 bloco quando activado.
 
-# # Manuseamento de mesa
+## Manuseamento de mesa
 
-As tabelas de marcação não são consistentemente suportadas entre clientes de chat. Utilização
-<<CODE0> para controlar a conversão por canal (e por conta).
+As tabelas de marcação não são consistentemente suportadas entre clientes de chat. Utilização`markdown.tables`para controlar a conversão por canal (e por conta).
 
-- <<CODE0>>: renderizar tabelas como blocos de código (padrão para a maioria dos canais).
-- <<CODE1>>: converter cada linha em pontos de bala (padrão para Signal + WhatsApp).
-- <<CODE2>>: desactivar a análise e a conversão da tabela; o texto bruto da tabela passa.
+-`code`: renderize tabelas como blocos de código (padrão para a maioria dos canais).
+-`bullets`: converter cada linha em pontos de bala (padrão para Signal + WhatsApp).
+-`off`: desactivar a análise e conversão da tabela; o texto bruto da tabela passa.
 
 Chaves de configuração:
 
@@ -82,7 +81,7 @@ channels:
           tables: off
 ```
 
-# # Regras de execução
+## Regras de execução
 
 - Os limites de chunk vêm de adaptadores/config de canal e são aplicados ao texto IR.
 - As cercas de código são preservadas como um único bloco com uma nova linha trilhando assim canais
@@ -93,35 +92,35 @@ não divide o prefixo médio.
 blocos; o renderizador reabre estilos dentro de cada bloco.
 
 Se você precisar de mais sobre o comportamento de blocos entre os canais, consulte
-[Streaming + blocking] (<<<LINK0>>>).
+[Streaming + blocking] /concepts/streaming.
 
-# # Política de ligação
+## Política de ligação
 
-- ** Slack:** <<CODE0> -> <<CODE1>>; URLs nuas permanecem nuas. Ligação automática
+- ** Slack:**`[label](OCTXLINK0)`->`<url|label>`; URLs nuas permanecem nuas. Ligação automática
 está desactivado durante o processamento para evitar ligações duplas.
-- **Telegrama:** <<CODE2>> -> <<CODE3>> (modo de processamento HTML).
-- **Signal:** <<CODE4> -> <<CODE5>> a menos que o rótulo corresponda ao URL.
+- **Telegrama:**`[label](OCTXLINK1)`->`<a href="url">label</a>`(modo de processamento HTML).
+- **Signal:**`[label](OCTXLINK2)`->`label (url)`a menos que o rótulo corresponda ao URL.
 
-# # Spoilers
+## Spoilers
 
-Marcadores de spoiler (<<<CODE0>>) são analisados apenas para Signal, onde eles mapeiam para
+Os marcadores de spoiler `||spoiler||` são analisados apenas para Signal, onde eles mapeiam para
 Faixas de estilo SPOILER. Outros canais tratam-nos como texto simples.
 
-# # Como adicionar ou atualizar um formatador de canal
+## Como adicionar ou atualizar um formatador de canal
 
-1. **Parse uma vez:** use o auxiliar compartilhado <<CODE0>> com canal apropriado
+1. **Parse uma vez:** use o ajudante`markdownToIR(...)`compartilhado com canal apropriado
 opções (autolink, estilo de cabeçalho, prefixo blockquote).
-2. **Render:** implementar um renderizador com <<CODE1>> e um
+2. **Render:** implementar um renderizador com`renderMarkdownWithMarkers(...)`e um
 mapa marcador de estilo (ou intervalos de estilo Sinal).
-3. **Chunk:** call <<CODE2>> before rendering; renderize cada bloco.
+3. ** Chunk:** chame`chunkMarkdownIR(...)`antes de renderizar; renderize cada bloco.
 4. ** Adaptador de fio:** atualizar o adaptador de saída do canal para usar o novo bloco
 e renderizador.
 5. **Teste:** adicionar ou atualizar testes de formato e um teste de entrega de saída se o
 O canal usa blocos.
 
-# # Gotchas comuns
+## Gotchas comuns
 
-- Os tokens dos travões dos ângulos de inclinação (<<<CODE0>>, <<CODE1>>, <<CODE2>>) devem ser
+- As fichas de fecho de ângulos de folga `<@U123>`,`<#C123>`,`<https://...>` devem ser
 preservado; escape do HTML em bruto com segurança.
 - Telegram HTML requer escapar texto fora tags para evitar a marcação quebrada.
 - Os intervalos de estilo de sinal dependem de deslocamentos UTF-16; não use deslocamentos de ponto de código.
