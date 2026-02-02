@@ -1,0 +1,99 @@
+---
+title: Deploy on Railway
+---
+
+Implantar OpenClaw na ferrovia com um modelo de um clique e terminar a configuração em seu navegador.
+Este é o caminho mais fácil “sem terminal no servidor”: Railway executa o Gateway para você,
+e você configura tudo através do assistente web <<CODE0>>.
+
+# # Lista de verificação rápida (novos usuários)
+
+1. Clique em **Employ on Railway** (abaixo).
+2. Adicionar um **Volume** montado em <<CODE0>>.
+3. Defina os ** Variáveis necessários** (pelo menos <<CODE1>>>).
+4. Activar **HTTP Proxy** na porta <<CODE2>>.
+5. Abra <<CODE3>> e termine o assistente.
+
+# # Implementação de um clique
+
+<a href="https://railway.com/deploy/clawdbot-railway-template" target="_blank" rel="noreferrer">
+Implantação na via férrea
+</a>
+
+Depois de implantar, encontre sua URL pública em **Railway → seu serviço → Configurações → Domínios**.
+
+Os caminhos-de-ferro:
+
+- dar- lhe um domínio gerado (frequentemente <<CODE0>>>), ou
+- use seu domínio personalizado se você anexar um.
+
+Em seguida, abra:
+
+- <<CODE0>> — assistente de configuração (protegido por senha)
+- <<CODE1>> — IU de controlo
+
+# # O que tens
+
+- OpenClaw Gateway hospedado + UI de controle
+- Assistente de configuração da Web em <<CODE0>> (sem comandos de terminal)
+- Armazenamento persistente via Volume Ferroviário (<<<CODE1>>>) então config/credencials/espaço de trabalho sobreviver a reafectações
+- Exportação de backup em <<CODE2>> para migrar para fora da ferrovia mais tarde
+
+# # Configurações ferroviárias necessárias
+
+Redes Públicas
+
+Activar **HTTP Proxy** para o serviço.
+
+- Porto: <<CODE0>>
+
+Volume (obrigatório)
+
+Adicionar um volume montado em:
+
+- <<CODE0>>
+
+Variáveis
+
+Define estas variáveis no serviço:
+
+- <<CODE0> (necessário)
+- <<CODE1>> (obrigatório — deve corresponder ao porto em Redes Públicas)
+- <<CODE2>> (recomendado)
+- <<CODE3> (recomendado)
+- <<CODE4>> (recomendado; tratar como um segredo de administração)
+
+# # Configuração do fluxo
+
+1. Visite <<CODE0>> e insira o seu <<CODE1>>>.
+2. Escolha um fornecedor de modelo/auth e cole sua chave.
+3. (Opcional) Adicione tokens de Telegram/Discord/Slack.
+4. Clique em **Run setup**.
+
+Se os DMs de Telegram estiverem configurados para emparelhamento, o assistente de configuração pode aprovar o código de emparelhamento.
+
+# # Obtendo fichas de bate-papo
+
+# # Telegram bot token
+
+1. Mensagem <<CODE0>> no Telegrama
+2. Executar <<CODE1>>
+3. Copie o token (parece <<CODE2>>>)
+4. Colar em <<CODE3>>>
+
+Discórdia bot token
+
+1. Ir para https://discord.com/developers/aplications
+2. **Novo aplicativo** → escolha um nome
+3. ** Bot** → ** Adicionar Bot**
+4. ** Enable MESSAGE CONTENT INTENT** under Bot → Privileged Gateway Intents (necessário ou o bot irá bater na inicialização)
+5. Copie o **Bot Token** e cole em <<CODE0>>
+6. Convide o bot para o seu servidor (OAuth2 URL Generator; escopos: <<CODE1>>>, <<CODE2>>)
+
+# # Backups & migração
+
+Baixe um backup em:
+
+- <<CODE0>>
+
+Isso exporta seu estado OpenClaw + espaço de trabalho para que você possa migrar para outro host sem perder a configuração ou memória.

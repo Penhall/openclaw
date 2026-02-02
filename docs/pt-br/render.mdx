@@ -1,0 +1,165 @@
+---
+title: Deploy on Render
+---
+
+Implantar OpenClaw no Render usando Infraestrutura como Código. Os incluídos <<CODE0>> Blueprint define toda a sua pilha declarativamente, serviço, disco, variáveis de ambiente, para que você possa implantar com um único clique e rever sua infraestrutura ao lado de seu código.
+
+# # Pré-requisitos
+
+- A [Conta de encomenda] (<<<LINK0>>>) (lista livre disponível)
+- Uma chave API de seu provedor preferido [modelo] (<<<LINK1>>>)
+
+# # Implantar com um Blueprint Render
+
+<a
+  href="https://render.com/deploy?repo=https://github.com/openclaw/openclaw"
+  target="_blank"
+  rel="noreferrer"
+>
+Lançar para renderizar
+</a>
+
+Clicando neste link:
+
+1. Criar um novo serviço Render a partir do <<CODE0>> Um plano na raiz deste acordo.
+2. Pedir- lhe para definir <<CODE1>>
+3. Construir a imagem Docker e implantar
+
+Uma vez implantado, seu URL de serviço segue o padrão <<CODE0>>.
+
+# # Compreendendo o Plano
+
+Render Blueprints são arquivos YAML que definem sua infraestrutura. O <<CODE0> neste
+repositório configura tudo o que é necessário para executar OpenClaw:
+
+```yaml
+services:
+  - type: web
+    name: openclaw
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: SETUP_PASSWORD
+        sync: false # prompts during deploy
+      - key: OPENCLAW_STATE_DIR
+        value: /data/.openclaw
+      - key: OPENCLAW_WORKSPACE_DIR
+        value: /data/workspace
+      - key: OPENCLAW_GATEWAY_TOKEN
+        generateValue: true # auto-generates a secure token
+    disk:
+      name: openclaw-data
+      mountPath: /data
+      sizeGB: 1
+```
+
+Principais recursos de Blueprint usados:
+
+Característica
+---------------------- -------------------------------------------------------------------------
+* <<CODE0>>
+* <<CODE1>> * Monitores de renderização <<CODE2>> e reinicia instâncias não saudáveis
+* <<CODE3>> * Prompts for value during implac (secrets)
+<<CODE4>> □ Gera automaticamente um valor criptograficamente seguro
+<<CODE5>> • Armazenamento persistente que sobrevive a reafectações
+
+# # Escolhendo um plano
+
+Plano de rotação para baixo Disco de melhor para
+----------------
+Não disponível Testes, demos
+Início Nunca 1GB+ Uso pessoal, equipas pequenas
+* Standard+ * Nunca * 1GB + * Produção, múltiplos canais *
+
+O Blueprint é padrão para <<CODE0>>>>. Para usar o nível livre, mude <<CODE1>> no seu garfo
+<<CODE2>> (mas nota: nenhum disco persistente significa redefinições de configuração em cada implantação).
+
+# # Após a implantação
+
+Complete o assistente de configuração
+
+1. Navegar para <<CODE0>>
+2. Entre no seu <<CODE1>>
+3. Selecione um provedor de modelo e cole sua chave de API
+4. Opcionalmente configurar canais de mensagens (Telegrama, Discórdia, Slack)
+5. Clique em **Run setup**
+
+Acesse a interface de controle
+
+O painel web está disponível em <<CODE0>>>.
+
+# # Render Dashboard recursos
+
+Diários
+
+Ver logs em tempo real em **Dashboard → seu serviço → Logs**. Filtro por:
+
+- Registros de compilação (criação de imagem Docker)
+- Implantar logs (início do serviço)
+- Registros de execução (saída de aplicação)
+
+Acesso da Shell
+
+Para depuração, abra uma sessão shell via **Dashboard → seu serviço → Shell**. O disco persistente é montado em <<CODE0>>>.
+
+## # Variáveis de ambiente
+
+Modificar variáveis em **Dashboard → seu serviço → Ambiente**. As alterações desencadeiam uma transferência automática.
+
+Auto-colar
+
+Se você usar o repositório OpenClaw original, o Render não enviará automaticamente seu OpenClaw. Para atualizá-lo, execute uma sincronização manual Blueprint do painel.
+
+# # Domínio personalizado
+
+1. Vá para **Dashboard → seu serviço → Configurações → Domínios personalizados**
+2. Adicione seu domínio
+3. Configurar DNS conforme instruído (CNAME para <<CODE0>>)
+4. Render disposições um certificado TLS automaticamente
+
+# # Escala
+
+Render suporta escala horizontal e vertical:
+
+- **Vertical**: Alterar o plano para obter mais CPU/RAM
+- **Horizontal**: Aumentar a contagem de instâncias (plano padrão e superior)
+
+Para OpenClaw, a escala vertical geralmente é suficiente. A escala horizontal requer sessões fixas ou gerenciamento externo do estado.
+
+# # Backups e migração
+
+Exportar sua configuração e espaço de trabalho a qualquer momento:
+
+```
+https://<your-service>.onrender.com/setup/export
+```
+
+Isso baixa um backup portátil que você pode restaurar em qualquer host OpenClaw.
+
+# # Resolução de problemas
+
+O serviço não vai começar
+
+Verifique os registos de implantação no Painel Render. Questões comuns:
+
+- Faltando <<CODE0>> — o Blueprint pede para isso, mas verifique se está definido
+- Correspondência de porta — garantir que <<CODE1> corresponda à porta exposta do Dockerfile
+
+Começa o frio lento
+
+Serviços de nível livre giram para baixo após 15 minutos de inatividade. O primeiro pedido após a rotação leva alguns segundos enquanto o recipiente começa. Atualizar para o plano inicial para sempre.
+
+Perda de dados após reafectação
+
+Isso acontece no nível livre (sem disco persistente). Atualização para um plano pago, ou
+exportar regularmente a sua configuração via <<CODE0>>>.
+
+Falhas na verificação de saúde
+
+Render espera uma resposta de 200 <<CODE0>> em 30 segundos. Se a compilação tiver sucesso, mas a implantação falhar, o serviço pode demorar muito para começar. Verificar:
+
+- Criar logs para erros
+- Se o recipiente é executado localmente com <<CODE0>

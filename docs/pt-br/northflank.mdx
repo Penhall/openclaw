@@ -1,0 +1,53 @@
+---
+title: Deploy on Northflank
+---
+
+Implantar OpenClaw no Northflank com um modelo de um clique e terminar a configuração em seu navegador.
+Este é o caminho mais fácil “sem terminal no servidor”: Northflank executa o Gateway para você,
+e você configura tudo através do assistente web <<CODE0>>.
+
+# # Como começar
+
+1. Clique em [Implantar OpenClaw](<<<LINK0>>>) para abrir o modelo.
+2. Crie uma [conta no Northflank](<<<LINK1>>) se você já não tiver uma.
+3. Clique em ** Implantar OpenClaw agora**.
+4. Defina a variável de ambiente necessária: <<CODE0>>>.
+5. Clique em **Deploy stack** para construir e executar o modelo OpenClaw.
+6. Espere que a implantação termine e clique em **Ver recursos**.
+7. Abra o serviço OpenClaw.
+8. Abra o URL OpenClaw público e configure em <<CODE1>>>.
+9. Abra a IU de controle em <<CODE2>>>.
+
+# # O que tens
+
+- OpenClaw Gateway hospedado + UI de controle
+- Assistente de configuração da Web em <<CODE0>> (sem comandos de terminal)
+- Armazenamento persistente via Northflank Volume (<<<CODE1>>) então config/credentials/workspace sobrevivem a reafectações
+
+# # Configuração do fluxo
+
+1. Visite <<CODE0>> e insira o seu <<CODE1>>>.
+2. Escolha um fornecedor de modelo/auth e cole sua chave.
+3. (Opcional) Adicione tokens de Telegram/Discord/Slack.
+4. Clique em **Run setup**.
+5. Abra a IU de controle em <<CODE2>>
+
+Se os DMs de Telegram estiverem configurados para emparelhamento, o assistente de configuração pode aprovar o código de emparelhamento.
+
+# # Obtendo fichas de bate-papo
+
+# # Telegram bot token
+
+1. Mensagem <<CODE0>> no Telegrama
+2. Executar <<CODE1>>
+3. Copie o token (parece <<CODE2>>>)
+4. Colar em <<CODE3>>>
+
+Discórdia bot token
+
+1. Ir para https://discord.com/developers/aplications
+2. **Novo aplicativo** → escolha um nome
+3. ** Bot** → ** Adicionar Bot**
+4. ** Enable MESSAGE CONTENT INTENT** under Bot → Privileged Gateway Intents (necessário ou o bot irá bater na inicialização)
+5. Copie o **Bot Token** e cole em <<CODE0>>
+6. Convide o bot para o seu servidor (OAuth2 URL Generator; escopos: <<CODE1>>>, <<CODE2>>)
