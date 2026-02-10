@@ -15,7 +15,7 @@ Openclaw tem duas camadas separadas de “streaming”:
 
 Há ** nenhuma transmissão real do token** para mensagens externas do canal hoje. A transmissão de rascunho de telegrama é a única superfície de fluxo parcial.
 
-# # Block streaming (mensagens de canal)
+## Block streaming (mensagens de canal)
 
 O streaming em bloco envia a saída do assistente em pedaços grossos à medida que se torna disponível.
 
@@ -31,92 +31,92 @@ Model output
 
 Legenda:
 
-- <<CODE0>>: eventos de fluxo de modelo (pode ser esparso para modelos não-streaming).
-- <<CODE1>>: <<CODE2>> aplicando limites min/máx. + preferência de quebra.
-- <<CODE3>>: mensagens de saída reais (respostas em bloco).
+-`text_delta/events`: eventos de fluxo modelo (pode ser esparso para modelos não-streaming).
+-`chunker`:`EmbeddedBlockChunker`aplicando limites min/máx. + preferência de ruptura.
+-`channel send`: mensagens de saída reais (respostas em bloco).
 
 **Controles:**
 
-- <<CODE0>>: <<CODE1>/<<CODE2>> (default off).
-- Substituições de canais: <<CODE3> (e variantes por conta) para forçar <<CODE4>>/<<CODE5> por canal.
-- <<CODE6>>: <<CODE7>> ou <<CODE8>>>.
-- <<CODE9>>: <<CODE10>>>.
-- <<CODE11>>: <<CODE12>> (blocos de fusão antes do envio).
-- Cápsula de canal: <<CODE13>> (por exemplo, <<CODE14>>>).
-- Modo de quebra de canal: <<CODE15>> (<<CODE16>default, <<CODE17>> splits em linhas em branco (limites de parágrafo) antes de blocos de comprimento).
-- Discord soft cap: <<CODE18> (padrão 17) divide respostas altas para evitar recorte de IU.
+-`agents.defaults.blockStreamingDefault`:`"on"`/`"off"`(default off).
+- Substituição de canais:`*.blockStreaming`(e variantes por conta) para forçar`"on"`/`"off"`por canal.
+-`agents.defaults.blockStreamingBreak`:`"text_end"`ou`"message_end"`.
+-`agents.defaults.blockStreamingChunk`:`"on"`0.
+-`"on"`1:`"on"`2 (blocos de fusão antes do envio).
+- Tampa dura do canal:`"on"`3 (por exemplo,`"on"`4).
+- Modo de bloco de canal:`"on"`5 `"on"`6 padrão,`"on"`7 divide em linhas em branco (limites de parágrafos) antes de blocos de comprimento).
+- Discord soft cap:`"on"`8 (padrão 17) divide respostas altas para evitar o recorte de UI.
 
 **Semântica de fronteira:**
 
-- <<CODE0>>: blocos de corrente assim que o blocker emite; flush em cada <<CODE1>>.
-- <<CODE2>>: esperar até que a mensagem assistente termine, em seguida, flush buffered output.
+-`text_end`: blocos de fluxo assim que o bloco emite; flush em cada`text_end`.
+-`message_end`: espere até que a mensagem assistente termine, em seguida, flush buffered saída.
 
-<<CODE0> ainda usa o blocker se o texto tamponado exceder <<CODE1>>, para que possa emitir vários pedaços no final.
+`message_end`ainda usa o bloco se o texto tamponado exceder o`maxChars`, para que possa emitir vários pedaços no final.
 
-# # Algoritmo de quebra (baixo/alto)
+## Algoritmo de quebra (baixo/alto)
 
-O bloco é implementado por <<CODE0>>>:
+O bloco é implementado pelo`EmbeddedBlockChunker`:
 
-- ** Baixo limite:** Não emitir até buffer >= <<CODE0>> (a menos que forçado).
-- **Ligação elevada:** preferem divisões antes de <<CODE1>>; se forçadas, divididas em <<CODE2>>>.
-- **Preferência de interrupção:** <<CODE3>> → <<CODE4>> → <<CODE5>> → <<CODE6> → quebra dura.
-- ** Cercas de código:** nunca dividir dentro de cercas; quando forçado em <<CODE7>>, fechar + reabrir a cerca para manter Markdown válido.
+- ** Baixo limite:** não emitir até buffer >=`minChars`(a menos que forçado).
+- **Alto limite:** preferem divisões antes de`maxChars`; se forçado, dividido em`maxChars`.
+- **Preferência de ruptura:**`paragraph`→`newline`→`sentence`→`whitespace`→ ruptura dura.
+- ** Cercas de código:** nunca dividir dentro de cercas; quando forçado em`maxChars`, fechar + reabrir a cerca para manter Markdown válido.
 
-<<CODE0> é preso ao canal <<CODE1>>, assim você não pode exceder as tampas por canal.
+`maxChars`está preso ao canal`textChunkLimit`, portanto você não pode exceder as tampas por canal.
 
-# # Coalescing (blocos de fusão fluídos)
+## Coalescing (blocos de fusão fluídos)
 
 Quando a transmissão de blocos está ativada, o OpenClaw pode ** misturar blocos consecutivos**
 Antes de os enviar para fora. Isso reduz o “spam de linha única” enquanto ainda fornece
 Produção progressiva.
 
-- Coalescing espera por **gaps ** (<<<CODE0>>) antes de rubor.
-- Os tampões são tampados por <<CODE1> e irão ruborizar se o excederem.
-- <<CODE2>> impede que pequenos fragmentos sejam enviados até que se acumule texto suficiente
+- Coalescing espera por **gapsidle** `idleMs` antes de rubor.
+- Os tampões são tampados pelo`maxChars`e irão ruborizar se excederem.
+-`minChars`impede que pequenos fragmentos sejam enviados até que se acumule texto suficiente
 (o flush final envia sempre o texto restante).
-- Joiner é derivado de <<CODE3>>
-(<<<CODE4>> → <<CODE5>>, <<CODE6>> → <<CODE7>, <<CODE8>> → espaço).
-- Substituições de canais estão disponíveis via <<CODE9>> (incluindo as configurações por conta).
-- Coalesce padrão <<CODE10> é batido para 1500 para Signal/Slack/Discord, a menos que anulado.
+- Joiner é derivado de`blockStreamingChunk.breakPreference``paragraph`→`
 
-# # # Caminhando como um humano entre blocos
+`,`newline`→`
+`,`sentence`→ espaço).
+- As substituições de canais estão disponíveis via`*.blockStreamingCoalesce`(incluindo configurações por conta).
+- Coalesce padrão`maxChars`0 é batido para 1500 para Signal / Slack / Discord, a menos que ultrapassado.
+
+### Caminhando como um humano entre blocos
 
 Quando o streaming do bloco está habilitado, você pode adicionar uma pausa ** aleatória** entre
 respostas em bloco (após o primeiro bloco). Isto faz com que as respostas multi-bolha sentir
 mais natural.
 
-- Configuração: <<CODE0>> (sobrepor por agente via <<CODE1>>>).
-- Modos: <<CODE2>> (padrão), <<CODE3>> (800–2500ms), <<CODE4>> (<<CODE5>/<<CODE6>>>).
+- Configuração:`agents.defaults.humanDelay`(sobrepor por agente via`agents.list[].humanDelay`.
+- Modos:`off`(padrão),`natural`(800–2500ms),`custom``minMs`/`maxMs`.
 - Aplica-se apenas a ** respostas em bloco **, não respostas finais ou resumos de ferramentas.
 
-# # # “Pedaços ou tudo”
+### “Pedaços ou tudo”
 
 Este mapa para:
 
-- ** Pedaços de estribo:** < <<CODE0>> + <<CODE1>> (emigre à medida que avança). Os canais de não-telegrama também necessitam de <<CODE2>>.
-- ** Rastreie tudo no final:** <<CODE3>>> (flush uma vez, possivelmente vários pedaços se muito longo).
-- ** Nenhuma transmissão em bloco:** <<CODE4>> (apenas resposta final).
+- ** Pedaços de estribo:**`blockStreamingDefault: "on"`+`blockStreamingBreak: "text_end"`(saída à medida que vai). Os canais de não-telegrama também precisam de`*.blockStreaming: true`.
+- **Stream everything in end:**`blockStreamingBreak: "message_end"`(flush uma vez, possivelmente múltiplos pedaços se muito longo).
+- ** Nenhuma transmissão em bloco:**`blockStreamingDefault: "off"`(apenas resposta final).
 
-** Nota do canal:** Para canais não- Telegram, a transmissão em bloco é ** off a menos que**
-<<CODE0> é explicitamente definido como <<CODE1>>>. Telegram pode transmitir rascunhos
-(<<<CODE2>>) sem respostas em bloco.
+** Nota do canal:** Para canais não- Telegram, a transmissão em bloco é ** off a menos que**`*.blockStreaming`é explicitamente definido como`true`. Telegram pode transmitir rascunhos
+`channels.telegram.streamMode` sem respostas em bloco.
 
-Lembrete de localização de configuração: os padrões <<CODE0> ao vivo
-<<CODE1>>, não a configuração da raiz.
+Lembrete de localização de configuração: os padrões`blockStreaming*`estão ao vivo`agents.defaults`, não a configuração da raiz.
 
-# # Telegram rascunho de transmissão (token-ish)
+## Telegram rascunho de transmissão (token-ish)
 
 O Telegram é o único canal com streaming de rascunho:
 
-- Usa API bot <<CODE0>> em ** chats privados com tópicos**.
-- <<CODE1>>>.
-- <<CODE2>>: rascunho de atualizações com o texto mais recente.
-- <<CODE3>>: rascunho de atualizações em blocos em bloco (mesma regra de blocos).
-- <<CODE4>>: nenhuma transmissão de rascunho.
-- Configuração de blocos de rascunho (somente para <<CODE5>>): <<CODE6>> (padrão: <<CODE7>>, <<CODE8>>).
-- A transmissão de rascunho é separada da transmissão de blocos; as respostas de blocos são desligadas por padrão e somente ativadas por <<CODE9>> em canais não-Telegram.
+- Usa Bot API`sendMessageDraft`em ** chats privados com tópicos**.
+-`channels.telegram.streamMode: "partial" | "block" | "off"`.
+-`partial`: redigir atualizações com o texto mais recente.
+-`block`: rascunho de atualizações em blocos em bloco (mesmas regras de blocos).
+-`off`: nenhum rascunho.
+- Projecto de configuração do bloco (apenas para`streamMode: "block"`:`channels.telegram.draftChunk`(por omissão:`minChars: 200`,`maxChars: 800`.
+- A transmissão de rascunho é separada da transmissão de blocos; as respostas de blocos estão desligadas por padrão e somente ativadas pelo`*.blockStreaming: true`em canais não- Telegram.
 - A resposta final ainda é uma mensagem normal.
-- <<CODE10> escreve o raciocínio na bolha de rascunho (apenas no Telegrama).
+-`channels.telegram.streamMode: "partial" | "block" | "off"`0 escreve raciocinando na bolha de rascunho (telegrama somente).
 
 Quando o rascunho de streaming está ativo, o OpenClaw desabilita o streaming de blocos para essa resposta para evitar o duplo fluxo.
 
@@ -130,5 +130,5 @@ Telegram (private + topics)
 
 Legenda:
 
-- <<CODE0>>: Bubble de rascunho de telegrama (não é uma mensagem real).
-- <<CODE1>>: envio normal de mensagens de Telegrama.
+-`sendMessageDraft`: bolha de rascunho de telegrama (não uma mensagem real).
+-`final reply`: mensagem normal de Telegrama.

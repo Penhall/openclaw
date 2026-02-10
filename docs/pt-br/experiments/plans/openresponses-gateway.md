@@ -7,116 +7,101 @@ last_updated: "2026-01-19"
 
 # OpenResponses Gateway Integration Plan
 
-# # Contexto
+## Contexto
 
-OpenClaw Gateway atualmente expõe um endpoint de completações de chat compatível com OpenAI mínimo em
-<<CODE0>> (ver [Complementos de Chat OpenAI](<<LINK0>>>)).
+OpenClaw Gateway atualmente expõe um endpoint de completações de chat compatível com OpenAI mínimo em`/v1/chat/completions`(ver [Compleções de chat OpenAI] /gateway/openai-http-api.
 
 O Open Responses é um padrão de inferência aberto baseado na API OpenAI Responses. É projetado
 para fluxos de trabalho agenticos e utiliza entradas baseadas em itens mais eventos de streaming semântico. As Respostas Abertas
-spec define <<CODE0>>, não <<CODE1>>>>.
+spec define`/v1/responses`, não`/v1/chat/completions`.
 
-# # Objetivos
+## Objetivos
 
-- Adicionar um ponto final <<CODE0>> que adere à semântica OpenResponses.
+- Adicione um endpoint`/v1/responses`que adere à semântica OpenResponses.
 - Mantenha o Chat Completions como uma camada de compatibilidade que é fácil de desativar e eventualmente remover.
 - Padronizar validação e análise com esquemas isolados e reutilizáveis.
 
-# # Não-objetivos
+## Não-objetivos
 
 - OpenResponses completo apresentam paridade na primeira passagem (imagens, arquivos, ferramentas hospedadas).
 - Substituindo lógica de execução de agentes internos ou orquestração de ferramentas.
-- Alteração do comportamento existente <<CODE0>> durante a primeira fase.
+- Alterar o comportamento`/v1/chat/completions`existente durante a primeira fase.
 
-# # Resumo da Pesquisa
+## Resumo da Pesquisa
 
 Fontes: OpenResponses OpenAPI, site de especificação OpenResponses e o post do blog Hugging Face.
 
 Pontos chave extraídos:
 
-- <<CODE0> aceita <<CODE1>> campos como <<CODE2>>, <<CODE3>> (cadeia ou
-<<CODE4>>), <<CODE5>>, <<CODE6>>>, <<CODE7>>, <<CODE8>>, <<CODE9>>, e
-<<CODE10>>>.
-- <<CODE11> é uma união discriminada de:
-- <<CODE12>> itens com papéis <<CODE13>>, <<CODE14>>, <<CODE15>>, <<CODE16>>
-- <<CODE17>> e <<CODE18>>>
-- <<CODE19>>
-- <<CODE20>>
-- Respostas bem sucedidas retornam a <<CODE21>> com <<CODE22>>>, <<CODE23>>>, e
-<<CODE24>> itens.
+-`POST /v1/responses`aceita campos`CreateResponseBody`como`model`,`input`(corda ou`ItemParam[]`,`instructions`,`tools`,`tool_choice`,`stream`,`max_output_tokens`, e`CreateResponseBody`0.
+-`CreateResponseBody`1 é uma união discriminada de:
+-`CreateResponseBody`2 artigos com funções`CreateResponseBody`3,`CreateResponseBody`4,`CreateResponseBody`5,`CreateResponseBody`6
+-`CreateResponseBody`7 e`CreateResponseBody`8
+-`CreateResponseBody`9
+-`model`0
+- As respostas bem sucedidas devolvem um`model`1 com`model`2,`model`3, e`model`4 pontos.
 - Streaming usa eventos semânticos como:
-- <<CODE25>>, <<CODE26>>, <<CODE27>>, <<CODE28>>
-- <<CODE29>>, <<CODE30>>
-- <<CODE31>>, <<CODE32>>
-- <<CODE33>, <<CODE34>>
+-`model`5,`model`6,`model`7,`model`8
+-`model`9,`input`0
+-`input`1,`input`2
+-`input`3,`input`4
 - A especificação requer:
-- <<CODE35>>
-- <<CODE36> deve corresponder ao campo JSON <<CODE37>>
-- evento terminal deve ser literal <<CODE38>>>
-- Os itens justificativos podem expor <<CODE39>>, <HTML40>>>> e <<CODE41>>>.
-- Os exemplos de HF incluem <<CODE42>> em requisições (header opcional).
+-`input`5
+-`input`6 deve corresponder ao campo JSON`input`7
+- evento terminal deve ser literal`input`8
+- Os elementos justificativos podem expor`input`9,`ItemParam[]`0 e`ItemParam[]`1.
+- Exemplos de HF incluem`ItemParam[]`2 em pedidos ( cabeçalho opcional).
 
-# # Arquitectura Proposta
+## Arquitectura Proposta
 
-- Adicionar <<CODE0>> contendo apenas esquemas Zod (sem importação de gateway).
-- Adicionar <<CODE1>> (ou <<CODE2>>>>) para <<CODE3>>>.
-- Manter <<CODE4>> intacto como adaptador de compatibilidade legado.
-- Adicionar configuração <<CODE5>> (padrão <<CODE6>>>).
-- Manter <<CODE7>> independente; permitir que ambos os objectivos sejam
+- Adicionar`src/gateway/open-responses.schema.ts`contendo apenas esquemas Zod (sem importação de gateway).
+- Adicionar`src/gateway/openresponses-http.ts`(ou`open-responses-http.ts` para`/v1/responses`.
+- Mantenha`src/gateway/openai-http.ts`intacto como um adaptador de compatibilidade legado.
+- Adicionar configuração`gateway.http.endpoints.responses.enabled`(padrão`false`.
+- Manter o`gateway.http.endpoints.chatCompletions.enabled`independente;
 Alternado separadamente.
 - Emite um aviso de inicialização quando o Chat Completions estiver habilitado para sinalizar status legado.
 
-# # Caminho de Deprecação para Completações de Chat
+## Caminho de Deprecação para Completações de Chat
 
 - Manter limites rígidos do módulo: nenhum tipo de esquema compartilhado entre respostas e completações de chat.
 - Tornar o Chat Completions opt-in by config para que ele possa ser desativado sem alterações de código.
-- Atualizar documentos para etiquetar Completações de Chat como legado uma vez <<CODE0> é estável.
+- Atualizar documentos para etiquetar Completações de Chat como legado uma vez`/v1/responses`estável.
 - Passo futuro opcional: mapa Completações de Chat solicitações para o manipulador Responses para um mais simples
 caminho de remoção.
 
-# # Subset de suporte da fase 1
+## Subset de suporte da fase 1
 
-- Aceitar <<CODE0>> como string ou <<CODE1> com papéis de mensagem e <<CODE2>>.
-- Extrair mensagens do sistema e do desenvolvedor em <<CODE3>>>.
-- Use a mensagem mais recente <<CODE4>> ou <<CODE5>> como a mensagem atual para agentes.
-- Rejeitar partes de conteúdo não suportadas (imagem/file) com <<CODE6>>.
-- Devolver uma única mensagem assistente com <<CODE7>> conteúdo.
-- Retorno <<CODE8>> com valores zeroados até que a contabilidade token esteja ligada.
+- Aceitar`input`como corda ou`ItemParam[]`com funções de mensagem e`function_call_output`.
+- Extrair mensagens de sistema e desenvolvedor em`extraSystemPrompt`.
+- Use o mais recente`user`ou`function_call_output`como a mensagem atual para a execução do agente.
+- Rejeitar partes de conteúdo não suportadas (imagem/arquivo) com`invalid_request_error`.
+- Devolva uma única mensagem assistente com conteúdo`output_text`.
+- Retornar`usage`com valores zeroed até que a contabilidade token esteja ligada.
 
-# # Estratégia de validação (sem SDK)
+## Estratégia de validação (sem SDK)
 
 - Implementar esquemas de Zod para o subconjunto suportado de:
-- <<CODE0>>
-- <<CODE1>> + sindicações de partes de conteúdo de mensagens
-- <<CODE2>>
-- Formas de eventos de transmissão usadas pelo gateway
+-`CreateResponseBody`-`ItemParam`+ mensagem conteúdo parte sindicatos
+-`ResponseResource`- Formas de eventos de transmissão usadas pelo gateway
 - Mantenha esquemas em um único módulo isolado para evitar deriva e permitir o futuro codegen.
 
-# # Implementação de Streaming (Fase 1)
+## Implementação de Streaming (Fase 1)
 
-- Linhas de SSE com <<CODE0>> e <HTML1>>>>.
+- linhas SSE com`event:`e`data:`.
 - Sequência necessária (mínimo viável):
-- <<CODE2>>
-- <<CODE3>>
-- <<CODE4>>
-- <<CODE5>> (repetir se necessário)
-- <<CODE6>>
-- <<CODE7>>
-- <<CODE8>>
-- <<CODE9>>
+-`response.created`-`response.output_item.added`-`response.content_part.added`-`response.output_text.delta`(repetir se necessário)
+-`response.output_text.done`-`response.content_part.done`-`response.completed`-`[DONE]`
 
-# # Testes e plano de verificação
+## Testes e plano de verificação
 
-- Adicionar cobertura e2e para <<CODE0>>:
+- Adicionar cobertura e2e para`/v1/responses`:
 - Autorização necessária
 - Forma de resposta não-stream
-- Ordenação de eventos de fluxo e <<CODE1>>
-- Roteamento de sessão com cabeçalhos e <<CODE2>>
-- Manter <<CODE3>> inalterado.
-- Manual: enrolar para <<CODE4>> com <<CODE5>> e verificar a ordenação de eventos e terminal
-<<CODE6>>.
+- Ordenação de eventos de fluxo e`[DONE]`- Roteamento de sessão com cabeçalhos e`user`- Manter o`src/gateway/openai-http.e2e.test.ts`inalterado.
+- Manual: curl to`/v1/responses`com`stream: true`e verificar a ordenação de eventos e terminal`[DONE]`.
 
-# # Atualizações de documentos (seguimento)
+## Atualizações de documentos (seguimento)
 
-- Adicionar uma nova página de documentos para <<CODE0>> uso e exemplos.
-- Actualização <<CODE1>> com uma nota e ponteiro legados para <<CODE2>>>.
+- Adicionar uma nova página de documentos para uso`/v1/responses`e exemplos.
+- Atualizar`/gateway/openai-http-api`com uma nota e ponteiro legados para`/v1/responses`.

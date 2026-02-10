@@ -14,19 +14,16 @@ WebSocket protocol** (handshake, request/response, server events). Esses esquema
 A aplicação macOS. Uma fonte de verdade; tudo o mais é gerado.
 
 Se quiser o contexto de protocolo de nível superior, comece com
-[Arquitetura do portal](<<<LINK0>>>).
+[Arquitectura do portal] /concepts/architecture.
 
-# # Modelo mental (30 segundos)
+## Modelo mental (30 segundos)
 
 Cada mensagem WS Gateway é um dos três quadros:
 
-- **Pedido**: <<CODE0>>
-- **Resposta**: <<CODE1>>
-- **Evento**: <<CODE2>>
+- **Pedido**:`{ type: "req", id, method, params }`- **Resposta**:`{ type: "res", id, ok, payload | error }`- **Evento**:`{ type: "event", event, payload, seq?, stateVersion? }`
 
-O primeiro quadro **deve ser uma solicitação <<CODE0>>. Depois disso, os clientes podem chamar
-métodos (p. ex. <<CODE1>>>, <HTML2>>>, <HTML3>>>>) e subscrever eventos (p. ex.
-<<CODE4>>, <<CODE5>>, <<CODE6>>).
+O primeiro quadro **deve ser uma solicitação`connect`. Depois disso, os clientes podem chamar
+métodos (por exemplo,`health`,`send`,`chat.send` e subscrever eventos (por exemplo,`presence`,`tick`,`agent`.
 
 Fluxo de ligação (mínimo):
 
@@ -43,43 +40,30 @@ Métodos comuns + acontecimentos:
 
 Exemplos de Categoria
 ---------- ---------------------------------------------------------------------------------------------------
-O núcleo deve ser o primeiro.
-* Mensagens < <<CODE4>>>, <<CODE5>>, <<CODE6>>, <<CODE7>>
-Conversar com <<CODE9>>, <<CODE10>>, <<CODE11>, <<CODE12>> O WebChat usa estes
-Sessões < <<CODE13>>, <<CODE14>>, <<CODE15>> administrador de sessão .
-□ Nós <<CODE16>>, <<CODE17>>, <<CODE18>> Gateway WS + ações de nó
-Acontecimentos < <<CODE19>>, <<CODE20>>, <<CODE21>>, <<CODE22>>, <<CODE23>>, <<CODE24>> Servidor de servidor de push
+OUTXCODE0 ,`health`,`status`,`connect`deve ser o primeiro
+OUTXCODE4,`poll`,`agent`,`agent.wait`. Os efeitos secundários necessitam de`idempotencyKey`.`chat.history`;`health`0;`health`1;`health`2; WebChat usa estes
+Sessões`health`3,`health`4,`health`5`health`6,`health`7,`health`8`health`9,`status`0,`status`1,`status`2,`status`3,`status`4
 
-A lista de autores vive em <<CODE0>> (<<CODE1>>, <<CODE2>>).
+A lista autorizativa vive em`src/gateway/server.ts``METHODS`,`EVENTS`.
 
-# # Onde vivem os esquemas
+## Onde vivem os esquemas
 
-- Fonte: <<CODE0>>
-- Validadores de tempo de execução (AJV): <<CODE1>>
-- Aperto de mão do servidor + expedição do método: <<CODE2>>
-- Cliente de nós: <<CODE3>>>
-- Esquema JSON gerado: <<CODE4>>
-- Modelos Swift gerados: <<CODE5>>
+- Fonte:`src/gateway/protocol/schema.ts`- Validadores de tempo de execução (AJV):`src/gateway/protocol/index.ts`- Servidor aperto de mão + despacho método:`src/gateway/server.ts`- Cliente de nós:`src/gateway/client.ts`- Esquema JSON gerado:`dist/protocol.schema.json`- Modelos Swift Gerados:`apps/macos/Sources/OpenClawProtocol/GatewayModels.swift`
 
-# # Oleoduto atual
+## Oleoduto atual
 
-- <<CODE0>>
-- escreve JSON Schema (draft-07) para <<CODE1>>
-- <<CODE2>>
-- gera modelos de gateway Swift
-- <<CODE3>>
-- executa ambos os geradores e verifica a saída está comprometida
+-`pnpm protocol:gen`- escreve JSON Schema (draft-07) ao`dist/protocol.schema.json`-`pnpm protocol:gen:swift`- gera modelos de gateway Swift
+-`pnpm protocol:check`- executa ambos os geradores e verifica a saída está comprometida
 
-# # Como os esquemas são usados em tempo de execução
+## Como os esquemas são usados em tempo de execução
 
 - **Lado do servidor**: cada quadro de entrada é validado com AJV. Apenas o aperto de mão
-aceita uma solicitação <<CODE0>> cujos parâmetros correspondem a <<CODE1>>>.
+aceita um pedido`connect`cujos parâmetros correspondam ao`ConnectParams`.
 - ** Lado do cliente**: o cliente JS valida quadros de eventos e respostas antes
 a usá-los.
-- ** Superfície do método**: o Gateway anuncia o suporte <<CODE2>> e
-<<CODE3>> em <HTML4>>>.
+- ** Superfície dométodo**: o Gateway anuncia o`methods`suportado e`events`em`hello-ok`.
 
-# # Quadros de exemplo
+## Quadros de exemplo
 
 Ligar (primeira mensagem):
 
@@ -142,7 +126,7 @@ Evento:
 { "type": "event", "event": "tick", "payload": { "ts": 1730000000 }, "seq": 12 }
 ```
 
-# # Cliente mínimo (Node.js)
+## Cliente mínimo (Node.js)
 
 Fluxo útil mais pequeno: conectar + saúde.
 
@@ -184,13 +168,13 @@ ws.on("message", (data) => {
 });
 ```
 
-# # Exemplo trabalhado: adicionar um método de ponta a ponta
+## Exemplo trabalhado: adicionar um método de ponta a ponta
 
-Exemplo: adicione uma nova solicitação <<CODE0>> que retorna <<CODE1>>.
+Exemplo: adicione uma nova solicitação`system.echo`que retorna`{ ok: true, text }`.
 
 1. **Schema (fonte da verdade)**
 
-Adicionar a <<CODE0>>:
+Adicionar ao`src/gateway/protocol/schema.ts`:
 
 ```ts
 export const SystemEchoParamsSchema = Type.Object(
@@ -204,7 +188,7 @@ export const SystemEchoResultSchema = Type.Object(
 );
 ```
 
-Adicionar ambos aos tipos <<CODE0>> e de exportação:
+Adicionar tanto ao`ProtocolSchemas`quanto aos tipos de exportação:
 
 ```ts
   SystemEchoParams: SystemEchoParamsSchema,
@@ -218,7 +202,7 @@ export type SystemEchoResult = Static<typeof SystemEchoResultSchema>;
 
 2. **Validação **
 
-Em <<CODE0>>, exportar um validador AJV:
+Em`src/gateway/protocol/index.ts`, exporte um validador AJV:
 
 ```ts
 export const validateSystemEchoParams = ajv.compile<SystemEchoParams>(SystemEchoParamsSchema);
@@ -226,7 +210,7 @@ export const validateSystemEchoParams = ajv.compile<SystemEchoParams>(SystemEcho
 
 3. ** Comportamento do servidor**
 
-Adicionar um manipulador em <<CODE0>>:
+Adicionar um manipulador no`src/gateway/server-methods/system.ts`:
 
 ```ts
 export const systemHandlers: GatewayRequestHandlers = {
@@ -237,8 +221,8 @@ export const systemHandlers: GatewayRequestHandlers = {
 };
 ```
 
-Registre-o em <<CODE0>> (já funde <<CODE1>>),
-em seguida, adicionar <<CODE2>> a <<CODE3>> em <<CODE4>>.
+Registre-o no`src/gateway/server-methods.ts`(já funde`systemHandlers`,
+Em seguida, adicione`"system.echo"`ao`METHODS`no`src/gateway/server.ts`.
 
 4. **Regenerar **
 
@@ -248,41 +232,40 @@ pnpm protocol:check
 
 5. ** Testes + documentos
 
-Adicione um teste de servidor em <<CODE0>> e observe o método em docs.
+Adicione um teste de servidor em`src/gateway/server.*.test.ts`e observe o método em docs.
 
-# # Comportamento de codegen rápido
+## Comportamento de codegen rápido
 
 O gerador Swift emite:
 
-- <<CODE0>> enum com <<CODE1>>, <<CODE2>>, <<CODE3>>, e <<CODE4>>> casos
-- structs/enums da carga útil fortemente digitados
-- <<CODE5> valores e <<CODE6>>
+-`GatewayFrame`enum com os casos`req`,`res`,`event`e`unknown`- structs/enums da carga útil fortemente digitados
+- valores`ErrorCode`e`GATEWAY_PROTOCOL_VERSION`
 
 Tipos de quadros desconhecidos são preservados como cargas brutas para compatibilidade com o futuro.
 
-# # Versionamento + compatibilidade
+## Versionamento + compatibilidade
 
-- <<CODE0> vive em <<CODE1>.
-- Os clientes enviam <<CODE2>>> + <<CODE3>>>; o servidor rejeita incompatibilidades.
+-`PROTOCOL_VERSION`vive em`src/gateway/protocol/schema.ts`.
+- Os clientes enviam`minProtocol`+`maxProtocol`; o servidor rejeita incompatibilidades.
 - Os modelos Swift mantêm tipos de quadros desconhecidos para evitar quebrar clientes mais velhos.
 
-# # Esquema padrões e convenções
+## Esquema padrões e convenções
 
-- A maioria dos objetos usa <<CODE0>> para cargas rígidas.
-- <<CODE1> é o padrão para IDs e nomes de método/evento.
-- O nível superior <<CODE2>> utiliza um **discriminador** em <<CODE3>>.
-- Métodos com efeitos secundários requerem geralmente um <<CODE4> em parâmetros
-(exemplo: <<CODE5>>, <<CODE6>>, <<CODE7>>, <<CODE8>>).
+- A maioria dos objetos usa`additionalProperties: false`para cargas rígidas.
+-`NonEmptyString`é o padrão para IDs e nomes de método/evento.
+- O`GatewayFrame`de alto nível utiliza um **discriminador** em`type`.
+- Métodos com efeitos secundários geralmente requerem um`idempotencyKey`em parâmetros
+(exemplo:`send`,`poll`,`agent`,`chat.send`.
 
-# # Esquema vivo JSON
+## Esquema vivo JSON
 
-O esquema gerado de JSON está no repo em <<CODE0>>>. A
+Gerado JSON Schema está no repo em`dist/protocol.schema.json`. A
 arquivo bruto publicado está tipicamente disponível em:
 
 - https://raw.githubusercontent.com/openclaw/openclaw/main/dist/protocol.schema.json
 
-# # Quando mudas de esquema
+## Quando mudas de esquema
 
 1. Atualizar os esquemas TypeBox.
-2. Executar <<CODE0>>>.
+2. Executar`pnpm protocol:check`.
 3. Cometer o esquema regenerado + modelos Swift.

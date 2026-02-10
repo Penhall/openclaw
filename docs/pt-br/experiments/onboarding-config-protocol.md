@@ -15,25 +15,20 @@ Componentes
 - o macOS a bordo usa o modelo passo assistente.
 - Web UI renderiza formulários de configuração de JSON Schema + dicas de UI.
 
-# # Porta RCP
+## Porta RCP
 
-- <<CODE0> parâmetros: <<CODE1>>
-- <<CODE2> parâmetros: <<CODE3>>
-- <<CODE4> params: <<CODE5>
-- <<CODE6> parâmetros: <<CODE7>>
-- <<CODE8>> parâmetros: <<CODE9>>
+-`wizard.start`parâmetros:`{ mode?: "local"|"remote", workspace?: string }`-`wizard.next`parâmetros:`{ sessionId, answer?: { stepId, value? } }`-`wizard.cancel`parâmetros:`{ sessionId }`-`wizard.status`parâmetros:`{ sessionId }`-`config.schema`parâmetros:`{}`
 
 Respostas (forma)
 
-- Assistente: <<CODE0>>
-- Esquema de configuração: <<CODE1>>
+- Wizard:`{ sessionId, done, step?, status?, error? }`- Esquema de configuração:`{ schema, uiHints, version, generatedAt }`
 
-# # Dicas de UI
+## Dicas de UI
 
-- <<CODE0> keyed by path; metadados opcionais (label/help/group/order/avanced/sensível/placeholder).
+-`uiHints`chaveado pelo caminho; metadados opcionais (rótulo/ajuda/grupo/ordem/avançado/sensível/locatário).
 - Campos sensíveis renderizam como entradas de senha; nenhuma camada de redação.
 - Os nós de esquema não suportados voltam para o editor JSON bruto.
 
-# # Notas
+## Notas
 
 - Este documento é o local único para rastrear os refatores de protocolo para a integração/configuração.

@@ -7,7 +7,7 @@ read_when:
 
 # Política de repetição
 
-# # Objetivos
+## Objetivos
 
 - Tente novamente por solicitação HTTP, não por fluxo multi-step.
 - Preservar encomendas tentando apenas o passo atual.
@@ -22,22 +22,22 @@ Padrões
 - Telegram min atraso: 400 ms
 - Discórdia atraso min: 500 ms
 
-# # Comportamento
+## Comportamento
 
 Discórdia
 
 - Repetições apenas em erros de limite de taxa (HTTP 429).
-- Usa Discórdia <<CODE0> quando disponível, caso contrário, retrocesso exponencial.
+- Usa Discord`retry_after`quando disponível, caso contrário exponencial backoff.
 
 Telegrama
 
 - Repetições de erros transitórios (429, tempo limite, conexão/reset/fechado, temporariamente indisponível).
-- Utiliza <<CODE0> quando disponível, caso contrário, recuo exponencial.
+- Usa`retry_after`quando disponível, caso contrário exponencial backoff.
 - Os erros de análise Markdown não são repetidos; eles voltam ao texto simples.
 
 Configuração
 
-Definir política de repetição por provedor em <<CODE0>>:
+Definir política de repetição por provedor em`~/.openclaw/openclaw.json`:
 
 ```json5
 {
@@ -62,7 +62,7 @@ Definir política de repetição por provedor em <<CODE0>>:
 }
 ```
 
-# # Notas
+## Notas
 
 - Repetições aplicar por pedido (mensagem enviar, upload de mídia, reação, votação, adesivo).
 - Os fluxos compósitos não voltam a tentar etapas completas.

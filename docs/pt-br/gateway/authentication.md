@@ -9,25 +9,24 @@ Autenticação
 
 OpenClaw suporta chaves OAuth e API para provedores de modelos. Para o Antrópico
 contas, recomendamos usar uma chave **API **. Para acesso à assinatura de Claude,
-utilizar o token de longa duração criado por <<CODE0>>.
+utilizar o símbolo de longa duração criado pelo`claude setup-token`.
 
-Ver [/conceitos/outh] (<<<LINK0>>>) para o fluxo e armazenamento de OAuth
+Ver [/conceitos/outh]/concepts/oauth para o fluxo e armazenamento de OAuth
 Disposição.
 
-# # Configuração antrópica recomendada (chave API)
+## Configuração antrópica recomendada (chave API)
 
 Se você estiver usando o Anthropic diretamente, use uma chave API.
 
 1. Crie uma chave API na Consola Antrópica.
-2. Coloque no host **gateway** (a máquina rodando <<CODE0>>>).
+2. Coloque-o no host **gateway** (a máquina que executa`openclaw gateway`.
 
 ```bash
 export ANTHROPIC_API_KEY="..."
 openclaw models status
 ```
 
-3. Se o Gateway é executado sob systemd/lançamento, prefira colocar a chave em
-<<CODE0> para que o daemon possa lê-lo:
+3. Se o Gateway é executado sob systemd/lançamento, prefira colocar a chave em`~/.openclaw/.env`para que o daemon possa lê-lo:
 
 ```bash
 cat >> ~/.openclaw/.env <<'EOF'
@@ -43,12 +42,11 @@ openclaw doctor
 ```
 
 Se você preferir não gerenciar env vars você mesmo, o assistente de onboarding pode armazenar
-Chaves de API para uso do servidor: <<CODE0>>>.
+Chaves de API para uso do servidor:`openclaw onboard`.
 
-Ver [Ajuda](<<<LINK0>>) para detalhes sobre a herança env (<<CODE0>>>,
-<<CODE1>>, sistemad/lançado).
+Ver [Ajuda]/help para mais pormenores sobre a herança env `env.shellEnv`,`~/.openclaw/.env`, sistemad/lançado).
 
-# # Antrópico: configuração-token (autorização de inscrição)
+## Antrópico: configuração-token (autorização de inscrição)
 
 Para Anthropic, o caminho recomendado é uma chave ** API. Se você estiver usando um Claude
 assinatura, o fluxo de configuração-token também é suportado. Execute- o no host ** gateway**:
@@ -77,42 +75,42 @@ This credential is only authorized for use with Claude Code and cannot be used f
 
 ...usar uma chave de API antrópica.
 
-Entrada de token manual (qualquer provedor; escreve <<CODE0>>> + configuração de atualizações):
+Entrada de token manual (qualquer provedor; escreve`auth-profiles.json`+ configuração de atualizações):
 
 ```bash
 openclaw models auth paste-token --provider anthropic
 openclaw models auth paste-token --provider openrouter
 ```
 
-Verificação amigável à automação (saída <<CODE0>> quando expirada/falta, <<CODE1>> quando expirada):
+Verificação amigável à automação (saída`1`quando expirada/falta,`2`quando expirada):
 
 ```bash
 openclaw models status --check
 ```
 
 Os scripts ops ops ops (systemd/Termux) estão documentados aqui:
-[/automatização/acompanhamento](<<<LINK0>>)
+[/automatização/monitoramento automático] /automation/auth-monitoring
 
-> <<CODE0> requer um TTY interativo.
+>`claude setup-token`requer um TTY interativo.
 
-# # Verificando o estado de autenticação do modelo
+## Verificando o estado de autenticação do modelo
 
 ```bash
 openclaw models status
 openclaw doctor
 ```
 
-# # Controlando qual credencial é usado
+## Controlando qual credencial é usado
 
 ## # Por sessão (comando chat)
 
-Use <<CODE0>> para fixar uma credencial de provedor específico para a sessão atual (ids de perfil de exemplo: <<CODE1>>>, <<CODE2>>).
+Use`/model <alias-or-id>@<profileId>`para fixar uma credencial de provedor específico para a sessão atual (ids de perfil exemplo:`anthropic:default`,`anthropic:work`.
 
-Utilizar <<CODE0>> (ou <<CODE1>>>) para um coletor compacto; usar <<CODE2>>> para a visão completa (candidatas + próximo perfil de autenticação, mais detalhes de endpoint do provedor quando configurado).
+Use`/model`(ou`/model list` para um seletor compacto; use`/model status`para a visão completa (candidatas + próximo perfil de autenticação, além de detalhes do terminal do provedor quando configurado).
 
-# # Per-agente (substituir CLI)
+## Per-agente (substituir CLI)
 
-Define um sobreposição explícita da ordem do perfil de autenticação para um agente (armazenado no <<CODE0>>):
+Define um sobreposição explícita da ordem do perfil de autenticação para um agente (armazenado no`auth-profiles.json`desse agente):
 
 ```bash
 openclaw models auth order get --provider anthropic
@@ -120,13 +118,13 @@ openclaw models auth order set --provider anthropic anthropic:default
 openclaw models auth order clear --provider anthropic
 ```
 
-Use <<CODE0>> para direcionar um agente específico; omita-o para usar o agente padrão configurado.
+Use`--agent <id>`para direcionar um agente específico; omiti-lo para usar o agente padrão configurado.
 
-# # Resolução de problemas
+## Resolução de problemas
 
 ## # Não foram encontradas credenciais
 
-Se o perfil do token antrópico estiver ausente, execute <<CODE0>>> no
+Se o perfil do símbolo Antrópico estiver ausente, execute`claude setup-token`no
 ** máquina de gateway**, então verifique novamente:
 
 ```bash
@@ -135,10 +133,10 @@ openclaw models status
 
 Token expirando/expirando
 
-Executar <<CODE0> para confirmar qual perfil está expirando. Se o perfil
-está em falta, repetir <<CODE1>>> e colar o token novamente.
+Execute`openclaw models status`para confirmar qual perfil está expirando. Se o perfil
+está faltando, repetir`claude setup-token`e colar o token novamente.
 
-# # Requisitos
+## Requisitos
 
-- Assinatura Claude Max ou Pro (para <<CODE0>>)
-- Claude Code CLI instalado (<<<CODE1>> comando disponível)
+- assinatura Claude Max ou Pro (para`claude setup-token`
+- Claude Code CLI instalado (comando`claude`disponível)

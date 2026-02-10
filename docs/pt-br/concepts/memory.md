@@ -10,39 +10,36 @@ Memória
 A memória OpenClaw é **plain Markdown no espaço de trabalho do agente**. Os arquivos são o
 fonte da verdade; o modelo só "lembra" o que é escrito no disco.
 
-As ferramentas de busca de memória são fornecidas pelo plugin de memória ativa (padrão:
-<<CODE0>>). Desabilitar plugins de memória com <<CODE1>>>.
+As ferramentas de busca de memória são fornecidas pelo plugin de memória ativa (padrão:`memory-core`. Desactivar plugins de memória com`plugins.slots.memory = "none"`.
 
 ## Arquivos de memória (Markdown)
 
 A disposição padrão do espaço de trabalho usa duas camadas de memória:
 
-- <<CODE0>>
-- Diário de bordo.
+-`memory/YYYY-MM-DD.md`- Diário de bordo.
 - Leia hoje + ontem no início da sessão.
-- <<CODE1> (opcional)
+-`MEMORY.md`(facultativo)
 - Memória de longo prazo.
 - ** Só carregar na sessão principal, privada** (nunca em contextos de grupo).
 
-Estes arquivos vivem sob a área de trabalho (<<<CODE0>>, padrão
-<<CODE1>>). Ver [Espaço de trabalho do agente](<<<LINK0>>>) para o layout completo.
+Estes arquivos vivem sob a área de trabalho `agents.defaults.workspace`, padrão`~/.openclaw/workspace`. Ver [Espaço de trabalho do agente]/concepts/agent-workspace para o layout completo.
 
-# # Quando escrever a memória
+## Quando escrever a memória
 
-- As decisões, preferências e fatos duráveis vão para <<CODE0>>.
-- Notas do dia-a-dia e contexto em execução ir para <<CODE1>>.
+- As decisões, preferências e factos duradouros vão para`MEMORY.md`.
+- Notas do dia-a-dia e contexto de execução ir para`memory/YYYY-MM-DD.md`.
 - Se alguém disser "lembre-se disto", escreva-o (não o guarde em RAM).
 - Esta área continua a evoluir. Ajuda a lembrar o modelo para armazenar memórias; saberá o que fazer.
 - Se queres algo para colar, pede ao robot para o escrever na memória.
 
-# # Automatic memória flush (pré-compaction ping)
+## Automatic memória flush (pré-compaction ping)
 
 Quando uma sessão é ** perto de auto-compaction**, OpenClaw desencadeia um **silent,
 agentic turn** que lembra o modelo de escrever memória durável **antes
 contexto é compactado. Os prompts padrão dizem explicitamente que o modelo  pode responder ,
-mas geralmente <<CODE0>> é a resposta correta para que o usuário nunca veja esta volta.
+mas geralmente`NO_REPLY`é a resposta correta para que o usuário nunca veja esta volta.
 
-Isto é controlado por <<CODE0>>:
+Isto é controlado pelo`agents.defaults.compaction.memoryFlush`:
 
 ```json5
 {
@@ -64,20 +61,18 @@ Isto é controlado por <<CODE0>>:
 
 Detalhes:
 
-- ** Limiar suave**: gatilhos de descarga quando a estimativa do token de sessão se cruza
-<<CODE0>>.
-- **Silêncio** por padrão: prompts incluem <<CODE1> assim nada é entregue.
+- ** Limiar suave**: gatilhos de descarga quando a estimativa do token de sessão se cruza`contextWindow - reserveTokensFloor - softThresholdTokens`.
+- **Silêncio** por padrão: prompts incluem`NO_REPLY`para que nada seja entregue.
 - **Dois prompts**: um prompt do usuário mais um prompt do sistema anexem o lembrete.
-- ** Um flush por ciclo de compactação** (traçado em <<CODE2>>>).
-- ** O espaço de trabalho deve ser escrito**: se a sessão correr sandboxed com
-<<CODE3>> ou <<CODE4>>, o flush é ignorado.
+- ** Um flush por ciclo de compactação** (tracked in`sessions.json`.
+- ** O espaço de trabalho deve ser escrito**: se a sessão correr sandboxed com`workspaceAccess: "ro"`ou`"none"`, o flush é ignorado.
 
 Para o ciclo de vida completo de compactação, ver
-[Gestão de sessão + compactação] (<<<LINK0>>>).
+[Gestão de sessão + compactação] /reference/session-management-compaction.
 
-# # Pesquisa de memória vetorial
+## Pesquisa de memória vetorial
 
-OpenClaw pode construir um pequeno índice vetorial sobre <<CODE0>> e <<CODE1>>> (mais
+OpenClaw pode construir um pequeno índice vetorial sobre`MEMORY.md`e`memory/*.md`(mais
 quaisquer diretórios extras ou arquivos que você optar) para que consultas semânticas possam encontrar relacionados
 notas mesmo quando o texto difere.
 
@@ -85,20 +80,18 @@ Predefinição:
 
 - Activado por omissão.
 - Observa arquivos de memória para alterações (debunçado).
-- Usa incorporações remotas por padrão. Se <<CODE0> não estiver definido, o OpenClaw seleciona automaticamente:
-1. <<CODE1> se um <<CODE2> estiver configurado e o arquivo existir.
-2. <<CODE3> se uma tecla OpenAI puder ser resolvida.
-3. <<CODE4> se uma chave Gemini pode ser resolvida.
+- Usa incorporações remotas por padrão. Se o`memorySearch.provider`não estiver definido, o OpenClaw seleciona automaticamente:
+1.`local`se um`memorySearch.local.modelPath`estiver configurado e o arquivo existir.
+2.`openai`se uma chave OpenAI puder ser resolvida.
+3.`gemini`se uma chave Gemini pode ser resolvida.
 4. Caso contrário, a pesquisa de memória permanece desactivada até ser configurada.
-- O modo local utiliza o nó- llama- cpp e pode requerer <<CODE5>>.
+- O modo local utiliza o nó- llama-cpp e pode requerer`pnpm approve-builds`.
 - Usa sqlite-vec (quando disponível) para acelerar a busca vetorial dentro do SQLite.
 
 Embutições remotas **requer** uma chave API para o provedor incorporador. Openclaw
-resolve chaves a partir de perfis de autenticação, <<CODE0>>, ou ambiente
+resolve chaves de perfis de autenticação,`models.providers.*.apiKey`ou ambiente
 variáveis. O Codex OAuth só cobre chat/compleções e não satisfaz **
-incorporações para pesquisa de memória. Para Gemini, utilizar <<CODE1>>> ou
-<<CODE2>>>. Ao utilizar um endpoint compatível com OpenAI personalizado,
-definido <<CODE3>> (e opcional <<CODE4>>>).
+incorporações para pesquisa de memória. Para Gemini, utilizar`GEMINI_API_KEY`ou`models.providers.google.apiKey`. Ao utilizar um endpoint compatível com OpenAI personalizado,`memorySearch.remote.apiKey`(e opcional`memorySearch.remote.headers`.
 
 Caminhos de memória adicionais
 
@@ -118,13 +111,13 @@ agents: {
 Notas:
 
 - Os caminhos podem ser absolutos ou relacionados com o espaço de trabalho.
-- Os diretórios são digitalizados recursivamente para <<CODE0>> arquivos.
+- Os diretórios são digitalizados recursivamente para arquivos`.md`.
 - Só os ficheiros Markdown estão indexados.
 - Symlinks são ignorados (arquivos ou diretórios).
 
 ### Gemini incorporações (nativo)
 
-Defina o provedor para <<CODE0>> para usar a API de incorporação Gemini diretamente:
+Defina o provedor para`gemini`para usar diretamente a API de incorporação Gemini:
 
 ```json5
 agents: {
@@ -142,12 +135,12 @@ agents: {
 
 Notas:
 
-- <<CODE0> é opcional (defaults to the Gemini API base URL).
-- <<CODE1> permite adicionar cabeçalhos extras, se necessário.
-- Modelo padrão: <<CODE2>>>>.
+-`remote.baseUrl`é opcional (defaults to the Gemini API base URL).
+-`remote.headers`permite adicionar cabeçalhos extras se necessário.
+- Modelo padrão:`gemini-embedding-001`.
 
 Se quiser utilizar um endpoint **compatível com OpenAI ** (OpenRouter, vLLM, ou um proxy),
-pode utilizar o <<CODE0>> configuração com o fornecedor OpenAI:
+você pode usar a configuração`remote`com o provedor OpenAI:
 
 ```json5
 agents: {
@@ -165,20 +158,19 @@ agents: {
 }
 ```
 
-Se você não quiser definir uma chave API, use <<CODE0>> ou set
-<<CODE1>>>.
+Se você não quiser definir uma chave API, use`memorySearch.provider = "local"`ou set`memorySearch.fallback = "none"`.
 
 Regressos:
 
-- <<CODE0>> pode ser <<CODE1>>, <<CODE2>>, <<CODE3>>, ou <<CODE4>>.
+-`memorySearch.fallback`pode ser`openai`,`gemini`,`local`ou`none`.
 - O provedor de retrocesso só é usado quando o provedor principal de incorporação falha.
 
 Indexação em lote (OpenAI + Gemini):
 
-- Habilitado por padrão para incorporação OpenAI e Gemini. Definir <<CODE0>> para desativar.
-- O comportamento padrão espera pela conclusão do lote; sintonize <<CODE1>>, <<CODE2>>>, e <<CODE3> se necessário.
-- Definir <<CODE4>> para controlar quantos trabalhos em lote enviamos em paralelo (padrão: 2).
-- O modo Lote aplica-se quando <<CODE5> ou <<CODE6> e utiliza a chave API correspondente.
+- Habilitado por padrão para incorporação OpenAI e Gemini. Defina`agents.defaults.memorySearch.remote.batch.enabled = false`para desabilitar.
+- O comportamento padrão espera pela conclusão do lote; ajuste`remote.batch.wait`,`remote.batch.pollIntervalMs`e`remote.batch.timeoutMinutes`se necessário.
+- Defina`remote.batch.concurrency`para controlar quantos trabalhos em lote enviamos em paralelo (padrão: 2).
+- O modo Lote se aplica quando`memorySearch.provider = "openai"`ou`"gemini"`e usa a chave API correspondente.
 - Trabalhos em lote Gemini usam o endpoint de lote assync embeddings e requerem disponibilidade da API Gemini Batch.
 
 Por que OpenAI lote é rápido + barato:
@@ -209,26 +201,26 @@ agents: {
 
 Ferramentas:
 
-- <<CODE0>> — retorna trechos com intervalos de arquivo + linha.
-- <<CODE1>> — ler o conteúdo do arquivo de memória por caminho.
+-`memory_search`— retorna trechos com intervalos de arquivo + linha.
+-`memory_get`— ler o conteúdo do arquivo de memória por caminho.
 
 Modo local:
 
-- Definir <<CODE0>>>.
-- Fornecer <<CODE1>> (GGUF ou <HTML2>>URI).
-- Opcional: definir <<CODE3> para evitar recuos remotos.
+- Preparar`agents.defaults.memorySearch.provider = "local"`.
+- Fornecer`agents.defaults.memorySearch.local.modelPath`(GGUF ou`hf:`URI).
+- Opcional: definir`agents.defaults.memorySearch.fallback = "none"`para evitar retrocesso remoto.
 
 Como funcionam as ferramentas de memória
 
-- <<CODE0> pesquisa semanticamente blocos Markdown (~400 token target, sobreposição de 80 token) de <<CODE1>> + <<CODE2>. Ele retorna texto de trecho (capped ~700 chars), caminho do arquivo, faixa de linha, pontuação, provedor/modelo, e se nós caímos de incorporados locais → remotos. Nenhuma carga completa do arquivo é devolvida.
-- <<CODE3> lê um ficheiro de memória específica (relativo ao espaço de trabalho), opcionalmente a partir de uma linha de partida e para linhas N. Caminhos fora <<CODE4>> / <<CODE5>> só são permitidos quando explicitamente listados em <<CODE6>>.
-- Ambas as ferramentas estão habilitadas apenas quando <<CODE7> resolve true para o agente.
+-`memory_search`pesquisa semanticamente blocos Markdown (~400 token target, sobreposição de 80 token) de`MEMORY.md`+`memory/**/*.md`. Ele retorna texto de trecho (capped ~700 chars), caminho do arquivo, faixa de linha, pontuação, provedor/modelo, e se nós caímos de incorporados locais → remotos. Nenhuma carga completa do arquivo é devolvida.
+-`memory_get`lê um arquivo Markdown de memória específica (relativo ao espaço de trabalho), opcionalmente a partir de uma linha de partida e para linhas N. Caminhos fora do`MEMORY.md`/`memory/`só são permitidos quando explicitamente enumerados no`memorySearch.extraPaths`.
+- Ambas as ferramentas são habilitadas somente quando o`memorySearch.enabled`resolve true para o agente.
 
-# # O que é indexado (e quando)
+## O que é indexado (e quando)
 
-- Tipo de ficheiro: Apenas Markdown (<<<CODE0>>, <<CODE1>>, mais quaisquer <<CODE2> ficheiros em <<CODE3>).
-- Armazenamento de índice: por agente SQLite em <<CODE4>> (configurado via <<CODE5>>, suporta <<CODE6> token).
-- Frescura: o observador em <<CODE7>>>, <<CODE8>>>, e <<CODE9>> marca o índice sujo (debate 1,5s). A sincronização é agendada no início da sessão, na pesquisa ou em um intervalo e é executada assíncrona. As transcrições das sessões usam limiares delta para activar a sincronização de fundo.
+- Tipo de ficheiro: apenas marcação `MEMORY.md`,`memory/**/*.md`, além de quaisquer ficheiros`.md`sob`memorySearch.extraPaths`.
+- Armazenamento de índice: por agente SQLite em`~/.openclaw/memory/<agentId>.sqlite`(configurado via`agents.defaults.memorySearch.store.path`, suporta token`{agentId}`.
+- Frescura: o observador em`MEMORY.md`,`memory/`e`memorySearch.extraPaths`marca o índice sujo (debounce 1.5s). A sincronização é agendada no início da sessão, na pesquisa ou em um intervalo e é executada assíncrona. As transcrições das sessões usam limiares delta para activar a sincronização de fundo.
 - Reindex gatilhos: o índice armazena a incorporação **provider/model + impressão digital endpoint + params de blocos**. Se alguma dessas alterações, o OpenClaw reinicia automaticamente e reindexa toda a loja.
 
 ### Pesquisa híbrida (BM25 + vetor)
@@ -249,8 +241,8 @@ Vector busca é grande em “isso significa a mesma coisa”:
 
 Mas pode ser fraco em fichas de alto sinal.
 
-- IDs (<<<CODE0>>, <<CODE1>>)
-- símbolos de código (<<<CODE2>>)
+- BI `a828e60`,`b3b9895a…`
+- símbolos de código `memorySearch.query.hybrid`
 - strings de erro (“sqlite-vec indisponível”)
 
 BM25 (texto completo) é o oposto: forte em fichas exatas, mais fraco em paráfrases.
@@ -263,20 +255,20 @@ Esboço de implementação:
 
 1. Recuperar um pool candidato de ambos os lados:
 
-- ** Vector**: topo <<CODE0>> por semelhança cossena.
-- ** BM25**: topo <<CODE1>> por FTS5 BM25 rank (inferior é melhor).
+- **Vector**: topo`maxResults * candidateMultiplier`por semelhança cossena.
+- **BM25**: topo`maxResults * candidateMultiplier`por FTS5 BM25 (inferior é melhor).
 
 2. Converta a classificação BM25 em uma pontuação de 0.1-ish:
 
-- <<CODE0>>
+-`textScore = 1 / (1 + max(0, bm25Rank))`
 
 3. Candidatos da União por block id e calcular uma pontuação ponderada:
 
-- <<CODE0>>
+-`finalScore = vectorWeight * vectorScore + textWeight * textScore`
 
 Notas:
 
-- <<CODE0>> + <<CODE1>> é normalizada para 1,0 em resolução de configuração, de modo que os pesos se comportam como percentuais.
+-`vectorWeight`+`textWeight`é normalizado para 1.0 em resolução de configuração, então os pesos se comportam como percentuais.
 - Se as incorporações não estiverem disponíveis (ou o provedor devolver um vetor zero), ainda rodamos BM25 e retornamos correspondências de palavras-chave.
 - Se FTS5 não pode ser criado, nós mantemos apenas a pesquisa vetorial (sem falha difícil).
 
@@ -324,7 +316,7 @@ agents: {
 
 ## # Pesquisa de memória de sessão (experimental)
 
-Você pode, opcionalmente, indexar ** transcripts de sessão** e superfirá-los via <<CODE0>>.
+Você pode, opcionalmente, indexar ** transcripts de sessão** e superfirá-los via`memory_search`.
 Isto está fechado atrás de uma bandeira experimental.
 
 ```json5
@@ -342,10 +334,10 @@ Notas:
 
 - A indexação da sessão é ** opt-in** (off por padrão).
 - As actualizações da sessão são desbotadas e ** indexadas assíncrona** uma vez que cruzam os limiares delta (melhor esforço).
-- <<CODE0> nunca bloqueia a indexação; os resultados podem ser ligeiramente obsoletos até que a sincronização de fundo termine.
-- Os resultados ainda incluem apenas trechos; <<CODE1> permanece limitado a arquivos de memória.
+-`memory_search`nunca bloqueia a indexação; os resultados podem ser ligeiramente obsoletos até que a sincronização de fundo termine.
+- Os resultados ainda incluem apenas trechos;`memory_get`permanece limitado a arquivos de memória.
 - A indexação da sessão é isolada por agente (apenas os registros de sessão do agente são indexados).
-- Registros de sessão ao vivo no disco (<<CODE2>>>). Qualquer processo/usuário com acesso ao sistema de arquivos pode lê-los, então trate o acesso ao disco como o limite de confiança. Para um isolamento mais rigoroso, execute agentes sob usuários ou hosts separados do sistema operacional.
+- Registros de sessão ao vivo no disco `~/.openclaw/agents/<agentId>/sessions/*.jsonl`. Qualquer processo/usuário com acesso ao sistema de arquivos pode lê-los, então trate o acesso ao disco como o limite de confiança. Para um isolamento mais rigoroso, execute agentes sob usuários ou hosts separados do sistema operacional.
 
 Limiares delta (padrão mostrado):
 
@@ -367,7 +359,7 @@ agents: {
 ### Aceleração vetorial SQLite (sqlite-vec)
 
 Quando a extensão sqlite-vec está disponível, as lojas OpenClaw
-SQLite tabela virtual (<<<CODE0>>) e executa consultas de distância vetorial na
+Tabela virtual SQLite `vec0` e executa consultas de distância vetorial na
 base de dados. Isto mantém a pesquisa rapidamente sem carregar cada incorporação no JS.
 
 Configuração (opcional):
@@ -389,19 +381,19 @@ agents: {
 
 Notas:
 
-- <<CODE0> o valor padrão é true; quando desabilitado, a pesquisa retorna ao processo
+-`enabled`defaults to true; quando desactivado, a pesquisa volta para o processo
 similaridade cossena sobre incorporações armazenadas.
 - Se a extensão sqlite-vec estiver ausente ou não for carregada, o OpenClaw registra o
 erro e continua com o retorno do JS (sem tabela vetorial).
-- <<CODE1> > substitui o caminho do pacote sqlite-vec (útil para construções personalizadas
+-`extensionPath`substitui o caminho sqlite-vec empacotado (útil para construções personalizadas
 ou locais de instalação não normalizados).
 
 ## # Local incorporando auto-download
 
-- Modelo de incorporação local padrão: <<CODE0>> (~0.6 GB).
-- Quando <<CODE1>>, <<CODE2> resolve <<CODE3>>; se o GGUF está faltando ele **auto-downloads** para o cache (ou <<CODE4>> se definido), então carrega-o. Os downloads são retomados ao tentar novamente.
-- Necessidade de construção nativa: executar <<CODE5>>, escolher <<CODE6>>>, em seguida, <<CODE7>>>.
-- Fallback: se a configuração local falhar e <<CODE8>>, mudamos automaticamente para incorporações remotas (<<CODE9>> a menos que seja anulada) e gravamos a razão.
+- Modelo de incorporação local padrão:`hf:ggml-org/embeddinggemma-300M-GGUF/embeddinggemma-300M-Q8_0.gguf`(~0.6 GB).
+- Quando o`memorySearch.provider = "local"`, o`node-llama-cpp`resolve o`modelPath`; se o GGUF não o encontrar **auto-downloads** para o cache (ou o`local.modelCacheDir`se estiver definido), então o carrega. Os downloads são retomados ao tentar novamente.
+- Exigência de construção nativa: execute`pnpm approve-builds`, escolha`node-llama-cpp`, em seguida,`pnpm rebuild node-llama-cpp`.
+- Fallback: se a configuração local falhar e`memorySearch.fallback = "openai"`, mudamos automaticamente para incorporações remotas `openai/text-embedding-3-small`a menos que sobreponha) e gravamos a razão.
 
 ## # Exemplo de terminal compatível com OpenAI personalizado
 
@@ -426,5 +418,5 @@ agents: {
 
 Notas:
 
-- <<CODE0> tem precedência sobre <<CODE1>>.
-- <<CODE2>> mesclar com os cabeçalhos do OpenAI; vitórias remotas em conflitos de chaves. Omitir <<CODE3>> para usar os padrões OpenAI.
+- O`remote.*`tem precedência sobre o`models.providers.openai.*`.
+-`remote.headers`funde-se com cabeçalhos OpenAI; vitórias remotas em conflitos de chaves. Omitir`remote.headers`para usar os padrões do OpenAI.

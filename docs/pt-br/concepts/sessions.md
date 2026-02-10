@@ -6,4 +6,4 @@ read_when:
 
 Sessões
 
-Os documentos de gerenciamento de sessão Canonical estão ao vivo em [Gestão de sessão] (<<<LINK0>>).
+Os documentos de gerenciamento de sessão canônica estão ao vivo em [Gestão de sessão] /concepts/session.

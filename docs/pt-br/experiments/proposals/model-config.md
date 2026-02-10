@@ -9,26 +9,26 @@ read_when:
 Este documento captura **ideas** para configuração futura do modelo. Não é um
 Espectro de transporte. Para o comportamento atual, veja:
 
-- [Modelos] (<<<LINK0>>)
-- [Modelo failover] (<<<LINK1>>)
-- [OAuth + perfis] (<<<LINK2>>>)
+- [Modelos] /concepts/models
+- [Modelo failover] /concepts/model-failover
+- [OAuth + perfis] /concepts/oauth
 
-# # Motivação
+## Motivação
 
 Operadores querem:
 
 - Vários perfis de autenticação por provedor (pessoal vs trabalho).
-- Seleção simples <<CODE0>> com retrocessos previsíveis.
+- Simples seleção`/model`com retrocessos previsíveis.
 - Limpar a separação entre modelos de texto e modelos capazes de imagem.
 
-# # Possível direção (alto nível)
+## Possível direção (alto nível)
 
-- Mantenha a seleção do modelo simples: <<CODE0> com apelidos opcionais.
+- Mantenha a seleção do modelo simples:`provider/model`com aliases opcionais.
 - Deixe os provedores ter vários perfis de autenticação, com uma ordem explícita.
 - Use uma lista global para que todas as sessões falhem de forma consistente.
 - Apenas sobreponha o roteamento da imagem quando explicitamente configurado.
 
-# # Perguntas abertas
+## Perguntas abertas
 
 - A rotação do perfil deve ser por fornecedor ou por modelo?
 - Como deve a seleção de perfil de superfície de IU para uma sessão?

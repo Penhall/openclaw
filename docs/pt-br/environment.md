@@ -10,17 +10,17 @@ read_when:
 
 OpenClaw puxa variáveis de ambiente de várias fontes. A regra é **nunca sobrepor valores existentes**.
 
-# # Precedência (mais alta → mais baixa)
+## Precedência (mais alta → mais baixa)
 
 1. ** Ambiente de processo** (o que o processo Gateway já tem da shell-mãe/daemon).
-2. **<<<CODE0>> no diretório de trabalho atual** (dotenv padrão; não substitui).
-3. **Global <<CODE1>** em <<CODE2>>> (também conhecido por <<CODE3>>; não substitui).
-4. **Config <<CODE4>>bloqueio** em <<CODE5>>> (aplicado apenas se faltar).
-5. ** Importação opcional de cartuchos de login** (<<<CODE6>> ou <<CODE7>>>>>), aplicada apenas para chaves em falta.
+2. **`.env`no diretório de trabalho atual** (dotenv default; não substitui).
+3. ** Global`.env`** em`~/.openclaw/.env`(também conhecido por`$OPENCLAW_STATE_DIR/.env`; não substitui).
+4. **Config`env`block** in`~/.openclaw/openclaw.json`(aplicado apenas se faltar).
+5. ** Importação opcional de shell de login** `env.shellEnv.enabled`ou`OPENCLAW_LOAD_SHELL_ENV=1`, aplicada apenas para chaves esperadas em falta.
 
 Se o ficheiro de configuração estiver completamente ausente, o passo 4 é ignorado; a importação do shell ainda é executada se estiver activo.
 
-Configuração <<CODE0>> block
+## Bloco`env`de configuração
 
 Duas formas equivalentes de definir env vars em linha (ambos não são imperiosos):
 
@@ -35,9 +35,9 @@ Duas formas equivalentes de definir env vars em linha (ambos não são imperioso
 }
 ```
 
-# # Shell env import
+## Shell env import
 
-<<CODE0> roda sua shell de login e importa apenas **falso** chaves esperadas:
+`env.shellEnv`executa sua shell de login e importa apenas ** faltando** chaves esperadas:
 
 ```json5
 {
@@ -52,12 +52,11 @@ Duas formas equivalentes de definir env vars em linha (ambos não são imperioso
 
 Env var equivalentes:
 
-- <<CODE0>>
-- <<CODE1>>
+-`OPENCLAW_LOAD_SHELL_ENV=1`-`OPENCLAW_SHELL_ENV_TIMEOUT_MS=15000`
 
-# # Substituição do Env var na configuração
+## Substituição do Env var na configuração
 
-Você pode referenciar env vars diretamente em valores de string config usando sintaxe <<CODE0>>:
+Você pode referenciar env vars diretamente em valores de string de configuração usando a sintaxe`${VAR_NAME}`:
 
 ```json5
 {
@@ -71,10 +70,10 @@ Você pode referenciar env vars diretamente em valores de string config usando s
 }
 ```
 
-Ver [Configuração: substituição do Env var] (<<<LINK0>>>) para detalhes completos.
+Ver [Configuração: substituição do Env var] /gateway/configuration#env-var-substitution-in-config para detalhes completos.
 
-# # Relacionado
+## Relacionado
 
-- [Configuração do portal] (<<<LINK0>>>)
-- [FAQ: env vars and .env loading] (<<<<LINK1>>>>)
-- [Observação dos modelos] (<<<LINK2>>>)
+- [Configuração do portal] /gateway/configuration
+- [FAQ: env vars e .env loading] /help/faq#env-vars-and-env-loading
+/concepts/models

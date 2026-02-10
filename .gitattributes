@@ -1,1 +1,13 @@
+# Automaticamente normaliza todos os arquivos de texto para LF no repositório
 * text=auto eol=lf
+
+# Força CRLF em arquivos que precisam rodar no Windows (scripts .bat, .cmd, etc.)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binários não mexem
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary

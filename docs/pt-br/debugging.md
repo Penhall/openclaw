@@ -11,11 +11,10 @@ Depuração
 Esta página cobre helpers de depuração para saída de streaming, especialmente quando um
 provedor mistura raciocínio em texto normal.
 
-# # A depuração em tempo de execução substitui
+## A depuração em tempo de execução substitui
 
-Use <<CODE0> em chat para definir ** apenas para execução** sobreposições de configuração (memória, não disco).
-<<CODE1>> está desativado por padrão; habilite com <<CODE2>>.
-Isto é útil quando você precisa alternar configurações obscuras sem editar <<CODE3>>>.
+Use`/debug`em bate-papo para definir ** apenas para execução** sobreposições de configuração (memória, não disco).`/debug`está desativado por padrão; habilite com`commands.debug: true`.
+Isto é útil quando você precisa alternar configurações obscuras sem editar`openclaw.json`.
 
 Exemplos:
 
@@ -26,9 +25,9 @@ Exemplos:
 /debug reset
 ```
 
-<<CODE0> limpa todas as substituições e retorna à configuração on-disk.
+`/debug reset`limpa todas as substituições e retorna à configuração no disco.
 
-# # Modo de observação do portal
+## Modo de observação do portal
 
 Para iteração rápida, execute o gateway sob o monitor de arquivos:
 
@@ -42,17 +41,17 @@ Este mapa para:
 tsx watch src/entry.ts gateway --force
 ```
 
-Adicione todas as bandeiras CLI do gateway após <<CODE0> e elas serão passadas
+Adicionar quaisquer bandeiras CLI gateway após`gateway:watch`e eles serão passados
 em cada reinicialização.
 
-# # Perfil Dev + gateway dev (--dev)
+## Perfil Dev + gateway dev (--dev)
 
 Use o perfil dev para isolar o estado e girar uma configuração segura e descartável para
-a depuração. Existem duas bandeiras** <<CODE0>>>:
+a depuração. Existem duas bandeiras`--dev`:
 
-- ** Estado global <<CODE0>> (perfil):** estado dos isolados em <<CODE1>>> e
-padrão a porta de gateway para <<CODE2>> (portas derivadas mudam com ele).
-- **<<<CODE3>>: diz ao Gateway para criar automaticamente uma configuração padrão +
+- **`--dev`global (perfil):** estado dos isolados sob`~/.openclaw-dev`e
+padrão a porta de gateway para`19001`(portas derivadas mudam com ela).
+- **`gateway --dev`: diz ao Gateway para criar automaticamente uma configuração padrão +
 espaço de trabalho** quando faltando (e pular BOOTSTRAP.md).
 
 Fluxo recomendado (dev profile + dev bootstrap):
@@ -62,24 +61,20 @@ pnpm gateway:dev
 OPENCLAW_PROFILE=dev openclaw tui
 ```
 
-Se ainda não tiver uma instalação global, execute o CLI via <<CODE0>>.
+Se ainda não tiver uma instalação global, execute o CLI via`pnpm openclaw ...`.
 
 O que isto faz:
 
-1. **Isolação do perfil** (global <<CODE0>>)
-- <<CODE1>>
-- <<CODE2>>
-- <<CODE3>>
-- <<CODE4>> (Narrowser/canvas mudar em conformidade)
+1. **Isolação de perfis** `--dev`global)
+-`OPENCLAW_PROFILE=dev`-`OPENCLAW_STATE_DIR=~/.openclaw-dev`-`OPENCLAW_CONFIG_PATH=~/.openclaw-dev/openclaw.json`-`OPENCLAW_GATEWAY_PORT=19001`(deslocamento navegador/canvas em conformidade)
 
-2. **Dev bootstrap** (<<<CODE0>>>)
-- Escreve uma configuração mínima se faltar (<<<CODE1>>, vincular loopback).
-- Define <<CODE2>> para o espaço de trabalho dev.
-- Sets <<CODE3>> (sem BOOTSTRAP.md).
-- Semeia os arquivos de espaço de trabalho se faltando:
-<<CODE4>>, <<CODE5>>, <<CODE6>>, <<CODE7>>, <<CODE8>>, <<CODE9>>>.
+2. **Dev bootstrap** `gateway --dev`
+- Grava uma configuração mínima se faltar `gateway.mode=local`, vincular loopback).
+- Define`agent.workspace`para o espaço de trabalho dev.
+- Define`agent.skipBootstrap=true`(sem BOOTSTRAP.md).
+- Semeia os arquivos de espaço de trabalho se faltando:`AGENTS.md`,`SOUL.md`,`TOOLS.md`,`IDENTITY.md`,`USER.md`,`HEARTBEAT.md`.
 - Identidade padrão: **C3-PO** (droid protocol).
-- Ignora os fornecedores de canais no modo dev (<<<CODE10>>>).
+- Salta os fornecedores de canais no modo dev `gateway.mode=local`0).
 
 Reiniciar o fluxo (novo início):
 
@@ -87,15 +82,14 @@ Reiniciar o fluxo (novo início):
 pnpm gateway:dev:reset
 ```
 
-Nota: <<CODE0> é uma bandeira de perfil **global** e é comido por alguns corredores.
+Nota:`--dev`é uma bandeira de perfil **global** e é comido por alguns corredores.
 Se precisar de soletrar, utilize o formulário env var:
 
 ```bash
 OPENCLAW_PROFILE=dev openclaw gateway --dev --reset
 ```
 
-<<CODE0> limpa a configuração, credenciais, sessões e o espaço de trabalho dev (usando
-<<CODE1>>, não <<CODE2>>), em seguida, recria a configuração padrão dev.
+`--reset`limpa a configuração, credenciais, sessões e a área de trabalho do dev (usando`trash`, não`rm`, então recria a configuração padrão do dev.
 
 Dica: se um gateway não- dev já estiver em execução (lançado/systemd), pare-o primeiro:
 
@@ -103,7 +97,7 @@ Dica: se um gateway não- dev já estiver em execução (lançado/systemd), pare
 openclaw gateway stop
 ```
 
-# # Registro de fluxo bruto (OpenClaw)
+## Registro de fluxo bruto (OpenClaw)
 
 OpenClaw pode registrar o **raw assistente stream** antes de qualquer filtragem/formatação.
 Esta é a melhor maneira de ver se o raciocínio está chegando como deltas de texto simples
@@ -130,9 +124,9 @@ OPENCLAW_RAW_STREAM_PATH=~/.openclaw/logs/raw-stream.jsonl
 
 Ficheiro por omissão:
 
-<<CODE0>>
+`~/.openclaw/logs/raw-stream.jsonl`
 
-# # Pedacinho cru (pi-mono)
+## Pedacinho cru (pi-mono)
 
 Para capturar **raw OpenAI-compat pedaços** antes de serem analisados em blocos,
 O pi-mono expõe um registador separado:
@@ -149,12 +143,12 @@ PI_RAW_STREAM_PATH=~/.pi-mono/logs/raw-openai-completions.jsonl
 
 Ficheiro por omissão:
 
-<<CODE0>>
+`~/.pi-mono/logs/raw-openai-completions.jsonl`
 
 > Nota: isso só é emitido por processos usando pi-mono
-> <<CODE0>> fornecedor.
+>`openai-completions`fornecedor.
 
-# # Notas de segurança
+## Notas de segurança
 
 - Os registros de fluxo bruto podem incluir prompts completos, saída de ferramenta e dados do usuário.
 - Mantém os registos locais e apaga-os após a depuração.

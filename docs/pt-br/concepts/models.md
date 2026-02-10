@@ -8,31 +8,31 @@ read_when:
 
 Modelos CLI
 
-Ver [/conceitos/modelo-fracasso](<<<LINK0>>>) para o perfil de autenticação
+Ver [/conceitos/modelo-fracasso]/concepts/model-failover para o perfil de autenticação
 rotação, arrefecimentos, e como isso interage com as falhas.
-Visão geral rápida do provedor + exemplos: [/conceitos/modelo-fornecedores](<<<LINK1>>>).
+Visão geral rápida do provedor + exemplos: [/conceitos/modelo-fornecedores]/concepts/model-providers.
 
-# # Como funciona a seleção do modelo
+## Como funciona a seleção do modelo
 
 OpenClaw seleciona modelos nesta ordem:
 
-1. ** Modelo primário** (<<<<CODE0>> ou <<CODE1>>>).
-2. **Fallbacks** em <<CODE2>> (em ordem).
+1. **Primário** modelo `agents.defaults.model.primary`ou`agents.defaults.model`.
+2. **Fallbacks** em`agents.defaults.model.fallbacks`(por ordem).
 3. ** Provider auth failover** acontece dentro de um provedor antes de se mover para o
 Próximo modelo.
 
 Relacionados:
 
-- <<CODE0> é o allowlist/catalog de modelos que OpenClaw pode usar (mais aliases).
-- <<CODE1>> é utilizado apenas quando** o modelo primário não pode aceitar imagens.
-- Os padrões por agente podem substituir <<CODE2>> via <<CODE3>> mais ligações (ver [/conceitos/multi-agente](<<LINK0>>)).
+-`agents.defaults.models`é a lista de allowlist/catalog dos modelos que o OpenClaw pode usar (mais aliases).
+-`agents.defaults.imageModel`é usado apenas quando** o modelo primário não pode aceitar imagens.
+- Os padrões por agente podem substituir`agents.defaults.model`via`agents.list[].model`mais ligações (ver [/conceitos/multi-agente]/concepts/multi-agent.
 
-# # Escolhas rápidas de modelos (anecdotal)
+## Escolhas rápidas de modelos (anecdotal)
 
 - ** GLM**: um pouco melhor para codificação/chamada de ferramentas.
 - **MiniMax**: melhor para escrever e vibes.
 
-# # Assistente de configuração (recomendado)
+## Assistente de configuração (recomendado)
 
 Se não quiser editar manualmente, execute o assistente de onboarding:
 
@@ -41,24 +41,23 @@ openclaw onboard
 ```
 
 Ele pode configurar modelo + autenticação para provedores comuns, incluindo **OpenAI Code (Codex)
-assinatura** (OAuth) e **Antrópico** (chave API recomendada; <<CODE0>> também suportado).
+assinatura** (OAuth) e **Antrópico** (chave API recomendada;`claude
+setup-token`também suportado).
 
 ## Teclas de configuração (overview)
 
-- <<CODE0>> e <<CODE1>>>
-- <<CODE2>> e <<CODE3>>>
-- <<CODE4>> (allowlist + aliases + parâmetros do fornecedor)
-- <<CODE5>> (prestadores aduaneiros inscritos em <<CODE6>>>)
+-`agents.defaults.model.primary`e`agents.defaults.model.fallbacks`-`agents.defaults.imageModel.primary`e`agents.defaults.imageModel.fallbacks`-`agents.defaults.models`(allowlist + aliases + params de fornecedores)
+-`models.providers`(prestadores aduaneiros inscritos no`models.json`
 
-Os refs do modelo são normalizados para minúsculas. Aliases de provedor como <<CODE0>> normalizar
-a <<CODE1>>>.
+Os refs do modelo são normalizados para minúsculas. Aliases de provedor como`z.ai/*`normalizam
+ao`zai/*`.
 
 Exemplos de configuração de provedores (incluindo OpenCode Zen) ao vivo
-[/porta/configuração] (<<<LINK0>>>).
+[/porta/configuração] /gateway/configuration#opencode-zen-multi-model-proxy.
 
 ## “Modelo não é permitido” (e por que as respostas param)
 
-Se <<CODE0>> for definido, torna-se a ** lista de licenças** para <<CODE1>> e para
+Se`agents.defaults.models`for definido, torna-se a ** lista de licenças** para`/model`e para
 sessão anulada. Quando um usuário seleciona um modelo que não está nessa lista de permissões,
 OpenClaw retorna:
 
@@ -69,9 +68,9 @@ Model "provider/model" is not allowed. Use /model to list available models.
 Isso acontece **antes de** uma resposta normal é gerada, então a mensagem pode sentir
 como ele “não respondeu.” A solução é:
 
-- Adicionar o modelo a <<CODE0>>>, ou
-- Limpar a lista de autorizações (remover <<CODE1>>>), ou
-- Escolha um modelo de <<CODE2>>>.
+- Adicionar o modelo ao`agents.defaults.models`, ou
+- Limpar a lista de autorizações (remover`agents.defaults.models`, ou
+- Escolha um modelo do`/model list`.
 
 Configuração da lista de permissões de exemplo:
 
@@ -87,7 +86,7 @@ Configuração da lista de permissões de exemplo:
 }
 ```
 
-# # Mudando modelos em chat (<<CODE0>>)
+## Mudando modelos no chat `/model`
 
 Você pode alternar modelos para a sessão atual sem reiniciar:
 
@@ -101,16 +100,16 @@ Você pode alternar modelos para a sessão atual sem reiniciar:
 
 Notas:
 
-- <<CODE0>> (e <<CODE1>>) é um coletor compacto numerado (família modelo + fornecedores disponíveis).
-- <<CODE2> seleciona a partir desse seletor.
-- <<CODE3> é a visão detalhada (candidatos e, quando configurados, endpoint do provedor <<CODE4>> + <<CODE5> modo).
-- Os refs do modelo são analisados dividindo-se no ** primeiro** <<CODE6>>>. Use <<CODE7>>> ao digitar <<CODE8>>.
-- Se o próprio ID do modelo contiver <<CODE9>>> (OpenRouter-style), você deve incluir o prefixo do provedor (exemplo: <<CODE10>>).
-- Se você omitir o provedor, OpenClaw trata a entrada como um alias ou um modelo para o provedor **default** (apenas funciona quando não há <<CODE11>> no ID do modelo).
+-`/model`(e`/model list` é um coletor compacto e numerado (família modelo + fornecedores disponíveis).
+-`/model <#>`seleciona a partir desse catador.
+-`/model status`é a visão detalhada (auth candidatos e, quando configurado, terminal de provedor`baseUrl`+ modo`api`.
+- Os refs de modelos são analisados dividindo-se no primeiro **`/`. Use`provider/model`ao digitar`/model <ref>`.
+- Se o próprio ID do modelo contém`/`(estilo OpenRouter), você deve incluir o prefixo do provedor (exemplo:`/model list`0).
+- Se você omitir o provedor, OpenClaw trata a entrada como um alias ou um modelo para o provedor **default** (apenas funciona quando não há`/model list`1 no ID do modelo).
 
-Comportamento/configuração de comando completo: [Comandos de linha](<<<LINK0>>>).
+Comportamento/configuração completo do comando: [Comandos de linha] /tools/slash-commands.
 
-# # Comandos CLI
+## Comandos CLI
 
 ```bash
 openclaw models list
@@ -133,29 +132,28 @@ openclaw models image-fallbacks remove <provider/model>
 openclaw models image-fallbacks clear
 ```
 
-<<CODE0> (sem subcomando) é um atalho para <<CODE1>>>.
+`openclaw models`(sem subcomando) é um atalho para`models status`.
 
-## # <<CODE0>>
+## #`models list`
 
 Mostra modelos configurados por padrão. Bandeiras úteis:
 
-- <<CODE0>>: catálogo completo
-- <<CODE1>>: apenas prestadores locais
-- <<CODE2>>: filtro por fornecedor
-- <<CODE3>>: um modelo por linha
-- <<CODE4>>: saída legível por máquina
+-`--all`: catálogo completo
+-`--local`: apenas prestadores locais
+-`--provider <name>`: filtro por fornecedor
+-`--plain`: um modelo por linha
+-`--json`: saída legível por máquina
 
-## # <<CODE0>>
+## #`models status`
 
 Mostra o modelo primário resolvido, os retrocessos, o modelo de imagem e uma visão geral da autenticação
 de fornecedores configurados. Ele também apresenta status de expiração OAuth para perfis encontrados
-no auth store (avisa dentro de 24h por padrão). <<CODE0>> apenas as impressões
+no auth store (avisa dentro de 24h por padrão).`--plain`imprime apenas o
 modelo primário resolvido.
-O status de OAuth é sempre mostrado (e incluído em <<CODE1> saída). Se um configurado
-provedor não tem credenciais, <<CODE2>>> imprime uma seção de **Auth ausente**.
-JSON inclui <<CODE3>> (janela de aviso + perfis) e <<CODE4>>
-(autorização eficaz por fornecedor).
-Utilizar <<CODE5>> para automatização (saída <<CODE6>> quando ausente/expirado, <<CODE7>> quando expirado).
+O status OAuth é sempre mostrado (e incluído na saída`--json`. Se um configurado
+provedor não tem credenciais,`models status`imprime uma ** Faltando auth** seção.
+JSON inclui`auth.oauth`(janela de aviso + perfis) e`auth.providers`(autorização eficaz por fornecedor).
+Usar`--check`para automação (sair`1`quando falta / expirado,`2`quando expirar).
 
 Autenticação antrópica preferida é a configuração CLI do Código Claude (corrida em qualquer lugar; cole na máquina de gateway, se necessário):
 
@@ -164,23 +162,22 @@ claude setup-token
 openclaw models status
 ```
 
-# # Digitalização (modelos livres OpenRouter)
+## Digitalização (modelos livres OpenRouter)
 
-<<CODE0> inspeciona o catálogo de modelos livre da OpenRouter** e pode
+`openclaw models scan`inspeciona o catálogo de modelos **free da OpenRouter e pode
 opcionalmente modelos de sonda para ferramenta e suporte de imagem.
 
 Parâmetros das teclas:
 
-- <<CODE0>>: sondas vivas (apenas metadados)
-- <<CODE1>>: tamanho mínimo dos parâmetros (biliões)
-- <<CODE2>: saltar modelos antigos
-- <<CODE3>>: filtro de prefixo do fornecedor
-- <<CODE4>>: tamanho da lista de emergência
-- <<CODE5>>: definido <<CODE6>>> para a primeira selecção
-- <<CODE7>>: definido <<CODE8>>> para a primeira selecção de imagens
+-`--no-probe`: sondas vivas (apenas metadados)
+-`--min-params <b>`: tamanho mínimo dos parâmetros (biliões)
+-`--max-age-days <days>`: saltar modelos antigos
+-`--provider <name>`: filtro de prefixo do provedor
+-`--max-candidates <n>`: tamanho da lista
+-`--set-default`: fixar o`agents.defaults.model.primary`para a primeira selecção
+-`--set-image`: definir`agents.defaults.imageModel.primary`para a primeira seleção de imagens
 
-A sondagem requer uma chave de API OpenRouter (de perfis de autenticação ou
-<<CODE0>>). Sem uma chave, use <<CODE1>> apenas para listar candidatos.
+A sondagem requer uma chave de API OpenRouter (de perfis de autenticação ou`OPENROUTER_API_KEY`. Sem uma chave, use`--no-probe`apenas para listar os candidatos.
 
 Os resultados da digitalização são classificados por:
 
@@ -191,16 +188,15 @@ Os resultados da digitalização são classificados por:
 
 Entrada
 
-- Lista OpenRouter <<CODE0>> (filtro <<CODE1>>)
-- Requer chave de API OpenRouter de perfis de autenticação ou <<CODE2>> (ver [/ambiente](<<LINK0>>))
-- Filtros opcionais: <<CODE3>>, <<CODE4>>, <<CODE5>>, <<CODE6>
-- Controlos das sondas: <<CODE7>>, <<CODE8>>
+- Lista OpenRouter`/models`(filtro`:free`
+- Requer chave API OpenRouter de perfis de autenticação ou`OPENROUTER_API_KEY`(ver [/ambiente]/environment
+- Filtros opcionais:`--max-age-days`,`--min-params`,`--provider`,`--max-candidates`- Controlos de sondas:`--timeout`,`--concurrency`
 
 Quando executado em um TTY, você pode selecionar backbacks interativamente. Em não-interactivo
-modo, passe <<CODE0>> para aceitar padrões.
+modo, passe`--yes`para aceitar padrões.
 
-# # Registro de modelos (<<<CODE0>>)
+## Registro de modelos `models.json`
 
-Os fornecedores personalizados em <<CODE0>> são escritos em <<CODE1> sob a
-diretório do agente (padrão <<CODE2>>>). Este ficheiro
-é fundido por padrão, a menos que <<CODE3>> seja definido como <<CODE4>>.
+Os prestadores personalizados em`models.providers`são inscritos em`models.json`sob o
+diretório do agente (padrão`~/.openclaw/agents/<agentId>/models.json`. Este ficheiro
+é fundida por padrão, a menos que`models.mode`seja definido como`replace`.
