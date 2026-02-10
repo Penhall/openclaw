@@ -1,6 +1,9 @@
 import WebSocket from "ws";
-
+import { isLoopbackHost } from "../gateway/net.js";
 import { rawDataToString } from "../infra/ws.js";
+import { getChromeExtensionRelayAuthHeaders } from "./extension-relay.js";
+
+export { isLoopbackHost };
 
 type CdpResponse = {
   id: number;
@@ -15,34 +18,25 @@ type Pending = {
 
 export type CdpSendFn = (method: string, params?: Record<string, unknown>) => Promise<unknown>;
 
-export function isLoopbackHost(host: string) {
-  const h = host.trim().toLowerCase();
-  return (
-    h === "localhost" ||
-    h === "127.0.0.1" ||
-    h === "0.0.0.0" ||
-    h === "[::1]" ||
-    h === "::1" ||
-    h === "[::]" ||
-    h === "::"
-  );
-}
-
 export function getHeadersWithAuth(url: string, headers: Record<string, string> = {}) {
+  const relayHeaders = getChromeExtensionRelayAuthHeaders(url);
+  const mergedHeaders = { ...relayHeaders, ...headers };
   try {
     const parsed = new URL(url);
-    const hasAuthHeader = Object.keys(headers).some((key) => key.toLowerCase() === "authorization");
+    const hasAuthHeader = Object.keys(mergedHeaders).some(
+      (key) => key.toLowerCase() === "authorization",
+    );
     if (hasAuthHeader) {
-      return headers;
+      return mergedHeaders;
     }
     if (parsed.username || parsed.password) {
       const auth = Buffer.from(`${parsed.username}:${parsed.password}`).toString("base64");
-      return { ...headers, Authorization: `Basic ${auth}` };
+      return { ...mergedHeaders, Authorization: `Basic ${auth}` };
     }
   } catch {
     // ignore
   }
-  return headers;
+  return mergedHeaders;
 }
 
 export function appendCdpPath(cdpUrl: string, path: string): string {
